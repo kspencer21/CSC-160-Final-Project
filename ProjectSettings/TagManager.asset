@@ -12,6 +12,7 @@ TagManager:
   - Enemy
   - NPC
   - Collectible
+  - User Interface (UI)
   layers:
   - Default
   - TransparentFX
