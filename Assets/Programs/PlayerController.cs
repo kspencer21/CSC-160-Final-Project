@@ -6,10 +6,10 @@ public class PlayerController : MonoBehaviour
     public const double maxHold = 3.0d; // number of seconds after holding space that currentJumpForce = pounceForce
     
     public static Keys keys = new Keys();
-    public static Rigidbody rb;
+    public static Rigidbody2D rb;
 
-    public static Vector2 jumpForce = new Vector2(1.0, 1.0);
-    public static Vector2 pounceForce = new Vector2(3.0, 0.33);
+    public static Vector2 jumpForce = new Vector2(0.0d, 500.0d);
+    public static Vector2 pounceForce = new Vector2(300.0d, 200.0d);
     public double walkSpeed = 1.0d;
     public double sprintSpeed = 2.0d;
     public double climbTime = 3.0d; // amount of time in seconds that a player can climb
@@ -66,8 +66,8 @@ public class PlayerController : MonoBehaviour
         {
             case KeyCode.Space:
                 keys.space = false;
-                updateJumpPower(pounceTicker);
-                jump(currentJumpForce);
+                // updateJumpPower(pounceTicker);
+                // jump(currentJumpForce);
                 break;
             case KeyCode.W:
                 keys.w = false;
@@ -115,15 +115,17 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// Make the player jump
     /// </summary>
+    /// <param name="power">A Vector2 representative of the jump power</param>
     void jump(Vector2 power)
     {
-        
+        // rb.AddForce(new Vector3((float)power.x, (float)power.y, 0), ForceMode2D.Force);
+        rb.AddForce(new Vector3(1000, 100, 0), ForceMode2D.Force);
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
+        rb = GetComponent<Rigidbody2D>();
     }
 
     // Update is called once per frame
@@ -132,6 +134,30 @@ public class PlayerController : MonoBehaviour
         if (keys.space)
         {
             pounceTicker += Time.deltaTime;
+        }
+    }
+
+    void FixedUpdate()
+    {
+        if (Input.GetKey(KeyCode.Space))
+        {
+            pounceTicker += Time.deltaTime;
+        }
+        if (Input.GetKeyUp(KeyCode.Space))
+        {
+            if (pounceTicker >= maxHold)
+            {
+                currentJumpForce.x = pounceForce.x;
+                currentJumpForce.y = pounceForce.y;
+            } else
+            {
+                currentJumpForce.x = ((pounceForce.x - jumpForce.x) / maxHold * pounceTicker) + jumpForce.x;
+                currentJumpForce.y = ((pounceForce.y - jumpForce.y) / maxHold * pounceTicker) + jumpForce.y;
+            }
+
+            rb.AddForce(new Vector3((float)currentJumpForce.x, (float)currentJumpForce.y, 0), ForceMode2D.Force);
+
+            pounceTicker = 0;
         }
     }
 
