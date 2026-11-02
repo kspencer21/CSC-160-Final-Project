@@ -1,89 +1,56 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class PlayerController : MonoBehaviour
 {
-    private class Vector2
-    {
-        readonly double x;
-        readonly double y;
-        
-        private Vector2(double x, double y)
-        {
-            this.x = x;
-            this.y = y;
-        }
-    }
+    public const double maxHold = 3.0d; // number of seconds after holding space that currentJumpForce = pounceForce
+    
+    public static Keys keys = new Keys();
+    public static Rigidbody rb;
 
-    private class Keys
-    {
-        readonly boolean space;
-        readonly boolean w;
-        readonly boolean a;
-        readonly boolean s;
-        readonly boolean d;
-        readonly boolean leftShift;
-        readonly boolean leftCrtl;
-        readonly boolean tab;
+    public static Vector2 jumpForce = new Vector2(1.0, 1.0);
+    public static Vector2 pounceForce = new Vector2(3.0, 0.33);
+    public double walkSpeed = 1.0d;
+    public double sprintSpeed = 2.0d;
+    public double climbTime = 3.0d; // amount of time in seconds that a player can climb
 
-        private Keys()
-        {
-            this.space = false;
-            this.w = false;
-            this.a = false;
-            this.s = false;
-            this.d = false;
-            this.leftShift = false;
-            this.leftCrtl = false;
-            this.tab = false;
-        }
-    }
+    public double pounceTicker = 0; // amount of time in seconds that the space bar (jump key) has been held
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    static void Start()
-    {
-        Keys keys = new Keys();
-        
-        Vector2 maxJumpForce = Vector2(1.0, 1.0);
-        Vector2 minJumpForce = Vector2(3.0, 0.33);
-        double walkSpeed = 1.0d;
-        double sprintSpeed = 2.0d;
-        double climbTime = 3.0d; // amount of time in seconds that a player can climb
+    public static Vector2 currentJumpForce = new Vector2(jumpForce.x, jumpForce.y);
 
-        Vector2 velocity = Vector2(0, 0);
-
-        int pounceTicker = 0;
-    }
+    
+    // ----- ##### ----- ##### ----- ##### -----
 
     /// <summary>
     /// Updates keys object when a key is first pressed
     /// </summary>
     /// <param name="ev">The event of the keypress</param>
-    static void OnKeyDown(KeyDownEvent ev)
+    void OnKeyDown(KeyDownEvent ev)
     {
         switch(ev.keyCode)
         {
-            case Space:
+            case KeyCode.Space:
                 keys.space = true;
                 break;
-            case W:
+            case KeyCode.W:
                 keys.w = true;
                 break;
-            case A:
+            case KeyCode.A:
                 keys.a = true;
                 break;
-            case S:
+            case KeyCode.S:
                 keys.s = true;
                 break;
-            case D:
+            case KeyCode.D:
                 keys.d = true;
                 break;
-            case LeftShift:
+            case KeyCode.LeftShift:
                 keys.leftShift = true;
                 break;
-            case LeftControl:
+            case KeyCode.LeftControl:
                 keys.leftCtrl = true;
                 break;
-            case Tab:
+            case KeyCode.Tab:
                 keys.tab = true;
                 break;
         }
@@ -93,53 +60,119 @@ public class PlayerController : MonoBehaviour
     /// Updates keys object when a key is released
     /// </summary>
     /// <param name="ev">The event of the key release</param>
-    static void OnKeyUp(KeyUpEven ev)
+    void OnKeyUp(KeyUpEvent ev)
     {
         switch(ev.keyCode)
         {
-            case Space:
+            case KeyCode.Space:
                 keys.space = false;
+                updateJumpPower(pounceTicker);
+                jump(currentJumpForce);
                 break;
-            case W:
+            case KeyCode.W:
                 keys.w = false;
                 break;
-            case A:
+            case KeyCode.A:
                 keys.a = false;
                 break;
-            case S:
+            case KeyCode.S:
                 keys.s = false;
                 break;
-            case D:
+            case KeyCode.D:
                 keys.d = false;
                 break;
-            case LeftShift:
+            case KeyCode.LeftShift:
                 keys.leftShift = false;
                 break;
-            case LeftControl:
+            case KeyCode.LeftControl:
                 keys.leftCtrl = false;
                 break;
-            case Tab:
+            case KeyCode.Tab:
                 keys.tab = false;
                 break;
         }
     }
 
     /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="t">The amount of time that the space key was held</param>
+    void updateJumpPower(double t)
+    {
+        this.pounceTicker = 0;
+
+        if (t >= maxHold)
+        {
+            currentJumpForce.x = pounceForce.x;
+            currentJumpForce.y = pounceForce.y;
+        } else
+        {
+            currentJumpForce.x = ((pounceForce.x - jumpForce.x) / maxHold * t) + jumpForce.x;
+            currentJumpForce.y = ((pounceForce.y - jumpForce.y) / maxHold * t) + jumpForce.y;
+        }
+    }
+
+    /// <summary>
     /// Make the player jump
     /// </summary>
-    static void Jump()
+    void jump(Vector2 power)
     {
         
     }
 
-    // Update is called once per frame
-    static void Update()
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
     {
-        switch(null)
+        rb = GetComponent<Rigidbody>();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (keys.space)
         {
-            case keys.space:
-                pounceTicker++;
-                break;
+            pounceTicker += Time.deltaTime;
         }
     }
+
+
+    // ----- ##### ----- ##### ----- ##### -----
+
+    public class Vector2
+    {
+        public double x;
+        public double y;
+        
+        public Vector2(double x, double y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    public class Keys
+    {
+        public bool space;
+        public bool w;
+        public bool a;
+        public bool s;
+        public bool d;
+        public bool leftShift;
+        public bool leftCtrl;
+        public bool tab;
+
+        public Keys()
+        {
+            this.space = false;
+            this.w = false;
+            this.a = false;
+            this.s = false;
+            this.d = false;
+            this.leftShift = false;
+            this.leftCtrl = false;
+            this.tab = false;
+        }
+    }
+
+
 }
