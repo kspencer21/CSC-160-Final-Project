@@ -3,17 +3,17 @@ using UnityEngine.UIElements;
 
 public class PlayerController : MonoBehaviour
 {
-    public const float maxHold = 1.5f; // number of seconds after holding space that currentJumpForce = pounceForce
-    public const float minHold = 0.2f;
+    [SerializeField] public const float maxHold = 1.5f; // number of seconds after holding space that currentJumpForce = pounceForce
+    [SerializeField] public const float minHold = 0.2f;
+    [SerializeField] public Vector2 jumpForce = new Vector2(0f, 15f);
+    [SerializeField] public Vector2 pounceForce = new Vector2(40f, 5f);
+    [SerializeField] public Vector2 speedForce = new Vector2(5f, 0f);
+    [SerializeField] public Vector2 walkSpeed = new Vector2(3f, 0f);
+    [SerializeField] public Vector2 sprintSpeed = new Vector2(5f, 0f);
     
-    // public static Keys keys = new Keys();
     private static Rigidbody2D rb;
 
-    private static Vector2 jumpForce = new Vector2(0f, 15f);
-    private static Vector2 pounceForce = new Vector2(40f, 5f);
-    private static Vector2 walkForce = new Vector2(2f, 0f);
-    private static Vector2 sprintForce = new Vector2(3f, 0f);
-    private static Direction1D facing = Direction1D.RIGHT; // +1 is facing right, -1 is facing left
+    private static Direction1D facing = Direction1D.RIGHT;
     private float climbTime = 3.0f; // amount of time in seconds that a player can climb
 
     private float pounceTicker = 0.0f; // amount of time in seconds that the space bar (jump key) has been held
@@ -21,7 +21,7 @@ public class PlayerController : MonoBehaviour
     private static Vector3 currentPos;
 
     private static Vector2 currentJumpForce = new Vector2(0f, 0f);
-    private static Vector2 currentVelocityForce = new Vector2(0f, 0f);
+    private static Vector2 currentVelocity = new Vector2(0f, 0f);
     
 
     
@@ -63,22 +63,6 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         currentPos = transform.position;
-
-        // facing variable setter
-        if (Input.GetKey(KeyCode.A)) { facing = Direction1D.LEFT; }
-        if (Input.GetKey(KeyCode.D)) { facing = Direction1D.RIGHT; }
-
-        // velocity setter
-        if (Input.GetKey(KeyCode.A) ^ Input.GetKey(KeyCode.D)) 
-        {
-            currentVelocityForce.x = walkForce.x;
-        } else
-        {
-            currentVelocityForce.x = 0;
-        }
-
-        // left and right movement mechanics
-        rb.AddForce(new Vector3((int)facing * currentVelocityForce.x, currentVelocityForce.y, 0), ForceMode2D.Force);
         
         // jump and pounce mechanics
         if (Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.W))
@@ -86,8 +70,8 @@ public class PlayerController : MonoBehaviour
             pounceTicker += Time.deltaTime;
             
             // make it so that the player cannot move while charging a pounce
-            currentVelocityForce.x = 0;
-            currentVelocityForce.y = 0;
+            currentVelocity.x = 0;
+            currentVelocity.y = 0;
         }
         if (Input.GetKeyUp(KeyCode.Space) || Input.GetKeyUp(KeyCode.W))
         {
@@ -98,7 +82,26 @@ public class PlayerController : MonoBehaviour
             pounceTicker = 0;
         }
 
+        // facing variable setter
+        if (Input.GetKey(KeyCode.A)) { facing = Direction1D.LEFT; }
+        if (Input.GetKey(KeyCode.D)) { facing = Direction1D.RIGHT; }
+
+        // velocity setter
+        if (Input.GetKey(KeyCode.A) ^ Input.GetKey(KeyCode.D))
+        {
+            currentVelocity.x = walkSpeed.x;
+        } else
+        {
+            currentVelocity.x = 0;
+        }
+
+        // left and right movement mechanics
+        if (Input.GetKey(KeyCode.A) ^ Input.GetKey(KeyCode.D)) { rb.AddForce(new Vector3(speedForce.x, speedForce.y, 0), ForceMode2D.Force); }
+        transform.Translate(new Vector3((int)facing * currentVelocity.x * Time.deltaTime, currentVelocity.y * Time.deltaTime, 0));
+
         // prepare for next tick
+        currentVelocity.x = 0;
+        currentVelocity.y = 0;
         lastPos = transform.position;
     }
 
