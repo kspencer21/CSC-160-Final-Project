@@ -172,7 +172,7 @@ public class PlayerController : MonoBehaviour
 
     // Update is called once per frame
     void Update()
-    {
+    {        
         // prepare relative variables (e.g. currentPos (corresponding to lastPos))
         currentPos = transform.position;
 
@@ -214,12 +214,17 @@ public class PlayerController : MonoBehaviour
     // FixedUpdate is called at a fixed rate of 50 hertz
     void FixedUpdate()
     {
+        // ensure that the player is not rotated
+        transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+        
+        // jump if a jump has been requested
         if (jumpRequest)
         {
             jump();
             jumpRequest = false;
         }
         
+        // move via forces if movement has been requested
         if (moveRequest) {
             moveForce(speedForce);
             moveRequest = false;
