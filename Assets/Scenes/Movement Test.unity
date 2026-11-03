@@ -119,6 +119,37 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &159621692
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 159621693}
+  m_Layer: 0
+  m_Name: Ground Check
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &159621693
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 159621692}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 237594093}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &218177509
 GameObject:
   m_ObjectHideFlags: 0
@@ -290,7 +321,8 @@ Transform:
   m_LocalPosition: {x: -14, y: -7, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 159621693}
   m_Father: {fileID: 1902708496}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &237594094
@@ -305,6 +337,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a27c81cc419f3f4a9aa7a81f62cbf1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  jumpForce: {x: 0, y: 15}
+  pounceForce: {x: 40, y: 5}
+  speedForce: {x: 5, y: 0}
+  walkSpeed: {x: 3, y: 0}
+  sprintSpeed: {x: 0, y: 0}
 --- !u!50 &237594096
 Rigidbody2D:
   serializedVersion: 5
@@ -320,7 +357,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 3
+  m_GravityScale: 5
   m_Material: {fileID: 6200000, guid: 35e3f2b5cdea62e4994d80a2d04247de, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
@@ -717,7 +754,7 @@ BoxCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 6af535753d342b444bfea2764e2c2f11, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
