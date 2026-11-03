@@ -3,9 +3,12 @@ using UnityEngine.UIElements;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] public const float maxHold = 1.5f; // number of seconds after holding jump that currentJumpForce = pounceForce
-    [SerializeField] public const float minHold = 0.2f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to pounceForce
-    [SerializeField] public const float climbTime = 3.0f; // amount of time in seconds that a player can climb
+    // constants
+    private const float maxHold = 1f; // number of seconds after holding jump that currentJumpForce = pounceForce
+    private const float minHold = 0.2f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to pounceForce
+    private const float climbTime = 3.0f; // amount of time in seconds that a player can climb
+
+    // serialized variables (can be modified in the editor)
     [SerializeField] public Vector2 jumpForce = new Vector2(0f, 15f);
     [SerializeField] public Vector2 pounceForce = new Vector2(40f, 5f);
     [SerializeField] public Vector2 speedForce = new Vector2(2f, 0f); // speedForce determines how much the translational movement is affected by acceleration (via forces)
@@ -13,17 +16,25 @@ public class PlayerController : MonoBehaviour
     [SerializeField] public Vector2 crawlSpeed = new Vector2(2f, 0f);
     [SerializeField] public Vector2 sprintSpeed = new Vector2(8f, 0f);
     
+    // object/components
     private static Rigidbody2D rb;
     private static Collider2D collider;
     private static Renderer rend;
 
+    // player states
     private static Direction1D facing = Direction1D.RIGHT;
     private static bool isOnGround = false;
 
+    // Update() and FixedUpdate() interactions
+    private static bool jumpRequest = false;
+    private static bool moveRequest = false;
+
+    // miscellaneous
     private float pounceTicker = 0.0f; // amount of time in seconds that the space bar (jump key) has been held
     private static Vector3 lastPos;
     private static Vector3 currentPos;
 
+    // "current" values
     private static Vector2 currentJumpForce = new Vector2(0f, 0f);
     private static Vector2 currentVelocity = new Vector2(0f, 0f);
     
@@ -81,16 +92,14 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void jump()
     {
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W)) {
-            // update currentJumpForce accordingly
-            updateJumpForce(pounceTicker);
+        // update currentJumpForce accordingly
+        updateJumpForce(pounceTicker);
 
-            // jump
-            rb.AddForce(new Vector3(currentJumpForce.x, currentJumpForce.y, 0), ForceMode2D.Impulse);
+        // jump
+        rb.AddForce(new Vector3(currentJumpForce.x, currentJumpForce.y, 0), ForceMode2D.Impulse);
 
-            // reset the pounceTicker
-            pounceTicker = 0;
-        }
+        // reset the pounceTicker
+        pounceTicker = 0;
     }
 
     /// <summary>
@@ -166,7 +175,7 @@ public class PlayerController : MonoBehaviour
         currentPos = transform.position;
 
         // update isOnGround
-        isOnGround = collider.IsTouchingLayers(3);
+        // isOnGround = collider.IsTouchingLayers(3);
 
 
         // facing variable setter
@@ -174,15 +183,19 @@ public class PlayerController : MonoBehaviour
 
         // jump and pounce mechanics
         chargePounce(); 
-        jump();
+        if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W)) {
+            jumpRequest = true;
+        }
+        // jump();
 
         // left and right movement mechanics
-        setVelocity();
+        // setVelocity();
         move(speedForce, currentVelocity);
 
 
         // debug
-        print(currentVelocity.x);
+        print("Velocity: " + currentVelocity.x);
+        print("Force: " + speedForce.x);
 
         // prepare for next tick
         currentVelocity.x = 0;
@@ -190,10 +203,18 @@ public class PlayerController : MonoBehaviour
         lastPos = transform.position;
     }
 
+    // FixedUpdate is called at a fixed rate of 50 hertz
     void FixedUpdate()
     {
+        if (jumpRequest)
+        {
+            jump();
+            jumpRequest = false;
+        }
         
+        move(speedForce, currentVelocity);
     }
+
 
 
     // ----- ##### ----- ##### ----- ##### -----
