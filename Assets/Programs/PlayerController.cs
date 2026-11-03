@@ -153,7 +153,7 @@ public class PlayerController : MonoBehaviour
     void moveTranslate(Vector2 speed)
     {
         // apply immediate translation
-        transform.Translate(new Vector3((int)facing * speed.x * Time.fixedDeltaTime, speed.y * Time.deltaTime, 0));
+        transform.Translate(new Vector3((int)facing * speed.x * Time.deltaTime, speed.y * Time.deltaTime, 0));
     }
 
 
