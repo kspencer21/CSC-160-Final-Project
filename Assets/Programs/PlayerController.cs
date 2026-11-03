@@ -3,8 +3,9 @@ using UnityEngine.UIElements;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] public const float maxHold = 1.5f; // number of seconds after holding space that currentJumpForce = pounceForce
-    [SerializeField] public const float minHold = 0.2f;
+    [SerializeField] public const float maxHold = 1.5f; // number of seconds after holding jump that currentJumpForce = pounceForce
+    [SerializeField] public const float minHold = 0.2f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to pounceForce
+    [SerializeField] public const float climbTime = 3.0f; // amount of time in seconds that a player can climb
     [SerializeField] public Vector2 jumpForce = new Vector2(0f, 15f);
     [SerializeField] public Vector2 pounceForce = new Vector2(40f, 5f);
     [SerializeField] public Vector2 speedForce = new Vector2(5f, 0f); // speedForce determines how much the translational movement is affected by acceleration (via forces)
@@ -12,9 +13,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] public Vector2 sprintSpeed = new Vector2(5f, 0f);
     
     private static Rigidbody2D rb;
+    private static Collider2D collider;
+    private static Renderer rend;
 
     private static Direction1D facing = Direction1D.RIGHT;
-    private float climbTime = 3.0f; // amount of time in seconds that a player can climb
+    private static bool isOnGround = false;
 
     private float pounceTicker = 0.0f; // amount of time in seconds that the space bar (jump key) has been held
     private static Vector3 lastPos;
@@ -137,6 +140,8 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        collider = GetComponent<Collider2D>();
+        rend = GetComponent<Renderer>();
 
         lastPos = transform.position;
     }
@@ -146,6 +151,9 @@ public class PlayerController : MonoBehaviour
     {
         // prepare relative variables (e.g. currentPos (corresponding to lastPos))
         currentPos = transform.position;
+
+        // update isOnGround
+        isOnGround = collider.IsTouchingLayers(3);
 
 
         // facing variable setter
@@ -159,6 +167,9 @@ public class PlayerController : MonoBehaviour
         setVelocity();
         move(speedForce, currentVelocity);
 
+
+        // debug
+        print(isOnGround);
 
         // prepare for next tick
         currentVelocity.x = 0;
