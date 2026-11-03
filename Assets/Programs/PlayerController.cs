@@ -8,9 +8,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] public const float climbTime = 3.0f; // amount of time in seconds that a player can climb
     [SerializeField] public Vector2 jumpForce = new Vector2(0f, 15f);
     [SerializeField] public Vector2 pounceForce = new Vector2(40f, 5f);
-    [SerializeField] public Vector2 speedForce = new Vector2(5f, 0f); // speedForce determines how much the translational movement is affected by acceleration (via forces)
-    [SerializeField] public Vector2 walkSpeed = new Vector2(3f, 0f); // walkSpeed determines how much the translational movement is immediate (direct translation)
-    [SerializeField] public Vector2 sprintSpeed = new Vector2(5f, 0f);
+    [SerializeField] public Vector2 speedForce = new Vector2(2f, 0f); // speedForce determines how much the translational movement is affected by acceleration (via forces)
+    [SerializeField] public Vector2 walkSpeed = new Vector2(5f, 0f); // walkSpeed determines how much the translational movement is immediate (direct translation)
+    [SerializeField] public Vector2 crawlSpeed = new Vector2(2f, 0f);
+    [SerializeField] public Vector2 sprintSpeed = new Vector2(8f, 0f);
     
     private static Rigidbody2D rb;
     private static Collider2D collider;
@@ -60,13 +61,18 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void chargePounce()
     {
-        if (Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.W)) {
-            // update pounceTicker based on how much time has passed
-            pounceTicker += Time.deltaTime;
-            
-            // make it so that the player cannot move while charging a pounce
-            currentVelocity.x = 0;
-            currentVelocity.y = 0;
+        if (Input.GetKey(KeyCode.S)) {
+            if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
+            {
+                pounceTicker = 0;
+            } else // only run when the player is crouching but not crawling
+            {
+                // update pounceTicker based on how much time has passed
+                pounceTicker += Time.deltaTime;
+            }
+        } else
+        {
+            pounceTicker = 0;
         }
     }
     
@@ -75,7 +81,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void jump()
     {
-        if (Input.GetKeyUp(KeyCode.Space) || Input.GetKeyUp(KeyCode.W)) {
+        if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W)) {
             // update currentJumpForce accordingly
             updateJumpForce(pounceTicker);
 
@@ -102,12 +108,19 @@ public class PlayerController : MonoBehaviour
     /// <remarks>
     /// XOR is used so that velocity is nullified if both left (A) and right (D) keys are pressed in addition to if neither are pressed
     /// Directionality is handled by the facing variable. currentVelocity determines the speed at which the player is moving
+    /// When either A or D is pressed and S is pressed, the player moves at a crawling speed instead
     /// </remarks>
     void setVelocity()
     {
         if (Input.GetKey(KeyCode.A) ^ Input.GetKey(KeyCode.D))
         {
-            currentVelocity.x = walkSpeed.x;
+            if (Input.GetKey(KeyCode.S))
+            {
+                currentVelocity.x = crawlSpeed.x;
+            } else
+            {
+                currentVelocity.x = walkSpeed.x;
+            }
         } else
         {
             currentVelocity.x = 0;
@@ -122,7 +135,7 @@ public class PlayerController : MonoBehaviour
     void move(Vector2 force, Vector2 speed)
     {
         // only execute if ONE left/right directional key is pressed and neither jump key is pressed
-        if ((Input.GetKey(KeyCode.A) ^ Input.GetKey(KeyCode.D)) && !(Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.W)))
+        if (Input.GetKey(KeyCode.A) ^ Input.GetKey(KeyCode.D))
         {
             // apply force
             rb.AddForce(new Vector3((int)facing * force.x, force.y, 0), ForceMode2D.Force);
@@ -169,7 +182,7 @@ public class PlayerController : MonoBehaviour
 
 
         // debug
-        print(isOnGround);
+        print(currentVelocity.x);
 
         // prepare for next tick
         currentVelocity.x = 0;
