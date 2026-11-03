@@ -137,21 +137,23 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Move the player based on their current speed
+    /// Move the player based on their current speed force
     /// </summary>
     /// <param name="force">The "force" speed to be applied</param>
-    /// <param name="speed">The immediately translational speed to be applied</param>
-    void move(Vector2 force, Vector2 speed)
+    void moveForce(Vector2 force)
     {
-        // only execute if ONE left/right directional key is pressed and neither jump key is pressed
-        if (Input.GetKey(KeyCode.A) ^ Input.GetKey(KeyCode.D))
-        {
-            // apply force
-            rb.AddForce(new Vector3((int)facing * force.x, force.y, 0), ForceMode2D.Force);
+        // apply force
+        rb.AddForce(new Vector3((int)facing * force.x, force.y, 0), ForceMode2D.Force);
+    }
 
-            // apply immediate translation
-            transform.Translate(new Vector3((int)facing * speed.x * Time.deltaTime, speed.y * Time.deltaTime, 0));
-        }
+    /// <summary>
+    /// Move the player based on their current speed
+    /// </summary>
+    /// <param name="speed"></param>
+    void moveTranslate(Vector2 speed)
+    {
+        // apply immediate translation
+        transform.Translate(new Vector3((int)facing * speed.x * Time.fixedDeltaTime, speed.y * Time.deltaTime, 0));
     }
 
 
@@ -183,19 +185,25 @@ public class PlayerController : MonoBehaviour
 
         // jump and pounce mechanics
         chargePounce(); 
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W)) {
+        if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W)) 
+        {
             jumpRequest = true;
         }
-        // jump();
 
         // left and right movement mechanics
-        // setVelocity();
-        move(speedForce, currentVelocity);
+        setVelocity();
+        if (Input.GetKey(KeyCode.A) ^ Input.GetKey(KeyCode.D))
+        {
+            moveRequest = true;
+            moveTranslate(currentVelocity);
+        }
 
 
         // debug
         print("Velocity: " + currentVelocity.x);
         print("Force: " + speedForce.x);
+        print("Facing: " + facing);
+        print("Facing (int): " + (int)facing);
 
         // prepare for next tick
         currentVelocity.x = 0;
@@ -212,7 +220,10 @@ public class PlayerController : MonoBehaviour
             jumpRequest = false;
         }
         
-        move(speedForce, currentVelocity);
+        if (moveRequest) {
+            moveForce(speedForce);
+            moveRequest = false;
+        }
     }
 
 
