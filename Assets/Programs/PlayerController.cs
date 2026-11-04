@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using System;
 
 public class PlayerController : MonoBehaviour
 {
@@ -21,6 +22,9 @@ public class PlayerController : MonoBehaviour
     private const float jumpCooldown = 0.1f; // amount of time in seconds after jumping that a player can jump again
     private const float airForceFactor = 0.5f; // how much to multiply the speedForce by when in air
     private const float airTranslationFactor = 0.8f; // how much to multiply the crawlSpeed by when in air
+    private const float speedLimitWalk = 10f; // how far the player can move in a second when walking
+    private const float speedLimitCrawl = 1f;
+    private const float speedLimitSprint = 1f;
 
     // serialized variables (can be modified in the editor)
     [SerializeField] public Vector2 jumpForce = new Vector2(0f, 15f); // the amount of force to be applied to the player when they jump
@@ -207,8 +211,10 @@ public class PlayerController : MonoBehaviour
     /// <param name="force">The "force" speed to be applied</param>
     void moveForce(Vector2 force)
     {
-        float f;
-        if (isOnGround) { f = 1; } else { f = airForceFactor; }
+        // apply air control factor if in air
+        float f = 1;
+        if (!isOnGround) { f = airForceFactor; }
+
         // apply force
         rb.AddForce(new Vector3((int)facing * force.x * f, force.y, 0), ForceMode2D.Force);
     }
@@ -221,6 +227,21 @@ public class PlayerController : MonoBehaviour
     {
         // apply immediate translation
         transform.Translate(new Vector3((int)facing * speed.x * Time.deltaTime, speed.y * Time.deltaTime, 0));
+    }
+
+    /// <summary>
+    /// Limit how far the player can move in a single tick.
+    /// </summary>
+    /// <param name="distance">distance the player traveled in the last tick</param>
+    /// <param name="limit">how far the player is allowed to travel in a second</param>
+    void limitSpeedX(float distance, float limit)
+    {
+        if (Math.Abs(distance) > limit * Time.deltaTime)
+        {
+            transform.Translate(new Vector3(-1 * (distance - (limit * Time.deltaTime)), 0, 0));
+            print("Speeding ticket!");
+            print((currentPos.x - lastPos.x) / Time.deltaTime);
+        }
     }
 
 
@@ -255,11 +276,11 @@ public class PlayerController : MonoBehaviour
         // update listeners
         eventListen();
 
-        // update collision booleans
-        // isOnGround = collider.IsTouchingLayers(groundLayer);
-
         // update jump cooldown timer
         jumpTicker += Time.deltaTime;
+        
+        // apply speed limits
+        // limitSpeedX(currentPos.x - lastPos.x, speedLimitWalk);
 
 
         // determine which way the player is facing
@@ -316,7 +337,11 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
+    /// <summary>
+    /// Handles events when a collision occurs
+    /// </summary>
+    /// <param name="collision"></param>
+    void OnCollisionEnter2D(Collision2D collision) // need to account for the case when the player hits an object before the ground, i.e. slides down a wall
     {
         contactNormal = collision.contacts[0].normal;
         if (contactNormal == new Vector2(0, 1) && collider.IsTouchingLayers(groundLayer))
@@ -325,11 +350,19 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handles events as a collision happens continuously
+    /// </summary>
+    /// <param name="collision"></param>
     void OnCollisionStay2D(Collision2D collision)
     {
         // print("Colliding");
     }
 
+    /// <summary>
+    /// Handles events as a collision ends
+    /// </summary>
+    /// <param name="collision"></param>
     void OnCollisionExit2D(Collision2D collision)
     {
         if (contactNormal == new Vector2(0, 1))
