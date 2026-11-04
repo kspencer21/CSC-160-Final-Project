@@ -11,7 +11,8 @@ public class PlayerController : MonoBehaviour
     // layer masks
     private int groundLayer;
 
-    private Vector2 contactNormal;
+    // normal vector of a collision
+    private Vector2 contactNormal = new Vector2(0, 0);
     
     // constants
     private const float maxHold = 1f; // number of seconds after holding jump that currentJumpForce = pounceForce
@@ -245,7 +246,7 @@ public class PlayerController : MonoBehaviour
         eventListen();
 
         // update collision booleans
-        isOnGround = collider.IsTouchingLayers(groundLayer);
+        // isOnGround = collider.IsTouchingLayers(groundLayer);
 
         // update jump cooldown timer
         jumpTicker += Time.deltaTime;
@@ -304,10 +305,26 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void OnCollisionEnter(Collision collision)
+    void OnCollisionEnter2D(Collision2D collision)
     {
         contactNormal = collision.contacts[0].normal;
-        print(contactNormal);
+        if (contactNormal == new Vector2(0, 1) && collider.IsTouchingLayers(groundLayer))
+        {
+            isOnGround = true;
+        }
+    }
+
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        // print("Colliding");
+    }
+
+    void OnCollisionExit2D(Collision2D collision)
+    {
+        if (contactNormal == new Vector2(0, 1))
+        {
+            isOnGround = false;
+        }
     }
 
 
