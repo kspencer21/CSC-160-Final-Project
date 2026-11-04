@@ -43,10 +43,54 @@ public class PlayerController : MonoBehaviour
     
     // ----- ##### ----- ##### ----- ##### -----
 
-    // void eventListen()
-    // {
-    //     if (GetKeyDown)
-    // }
+    void eventListen()
+    {
+        // listen for jump-related keys down
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.Space)) 
+        {
+            mov.jump = true;
+        } else 
+        {
+            mov.jump = false;
+        }
+
+        // listen for crouch-related keys down
+        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.LeftShift)) 
+        {
+            mov.crouch = true; 
+        } else 
+        { 
+            mov.crouch = false;
+        }
+
+        // listen for sprint-related keys down
+        // not currently used
+        // if (Input.GetKey(KeyCode.LeftControl))
+        // {
+            
+        // } else
+        // {
+            
+        // }
+
+        // listen for left-movement-related keys down
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+        {
+            mov.left = true;
+        } else 
+        {
+            mov.left = false;
+        }
+        
+        // listen for right-movement-related keys down
+        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+        {
+            mov.right = true;
+        } else 
+        {
+            mov.right = false;
+        }
+    }
 
     /// <summary>
     /// Updates the currentJumpForce
@@ -182,11 +226,14 @@ public class PlayerController : MonoBehaviour
         // prepare relative variables (e.g. currentPos (corresponding to lastPos))
         currentPos = transform.position;
 
-        // update isOnGround
+        // update listeners
+        // eventListen();
+
+        // update ground collision
         // isOnGround = collider.IsTouchingLayers(3);
 
 
-        // facing variable setter
+        // determine which way the player is facing
         updateFacing();
 
         // jump and pounce mechanics
