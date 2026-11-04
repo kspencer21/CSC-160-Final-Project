@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour
     private const float maxHold = 1f; // number of seconds after holding jump that currentJumpForce = pounceForce
     private const float minHold = 0.2f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to pounceForce
     private const float climbTime = 3f; // amount of time in seconds that a player can climb
+    private const float jumpCooldown = 0.1f;
 
     // serialized variables (can be modified in the editor)
     [SerializeField] public Vector2 jumpForce = new Vector2(0f, 15f); // the amount of force to be applied to the player when they jump
@@ -31,7 +32,8 @@ public class PlayerController : MonoBehaviour
 
     // miscellaneous
     private Movement mov = new Movement();
-    private float pounceTicker = 0.0f; // amount of time in seconds that the space bar (jump key) has been held
+    private float pounceTicker = 0f; // amount of time in seconds that the space bar (jump key) has been held
+    private float jumpTicker = 0f;
     private Vector3 lastPos;
     private Vector3 currentPos;
 
@@ -127,8 +129,8 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void chargePounce()
     {
-        if (Input.GetKey(KeyCode.S)) {
-            if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
+        if (mov.crouch) {
+            if (mov.left || mov.right)
             {
                 pounceTicker = 0;
             } else // only run when the player is crouching but not crawling
@@ -162,8 +164,8 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void updateFacing()
     {
-        if (Input.GetKey(KeyCode.A)) { facing = Direction1D.LEFT; }
-        if (Input.GetKey(KeyCode.D)) { facing = Direction1D.RIGHT; }
+        if (mov.left) { facing = Direction1D.LEFT; }
+        if (mov.right) { facing = Direction1D.RIGHT; }
     }
 
     /// <summary>
@@ -176,18 +178,12 @@ public class PlayerController : MonoBehaviour
     /// </remarks>
     void setVelocity()
     {
-        if (Input.GetKey(KeyCode.A) ^ Input.GetKey(KeyCode.D))
+        if (mov.crouch)
         {
-            if (Input.GetKey(KeyCode.S))
-            {
-                currentVelocity.x = crawlSpeed.x;
-            } else
-            {
-                currentVelocity.x = walkSpeed.x;
-            }
+            currentVelocity.x = crawlSpeed.x;
         } else
         {
-            currentVelocity.x = 0;
+            currentVelocity.x = walkSpeed.x;
         }
     }
 
@@ -244,20 +240,23 @@ public class PlayerController : MonoBehaviour
         // update ground collision
         isOnGround = collider.IsTouchingLayers(3);
 
+        // update jump cooldown timer
+        jumpTicker += Time.deltaTime;
+
 
         // determine which way the player is facing
         updateFacing();
 
         // jump and pounce mechanics
         chargePounce(); 
-        if (mov.jump && isOnGround) 
+        if (mov.jump && isOnGround && (jumpTicker >= jumpCooldown)) 
         {
             jumpRequest = true;
         }
 
         // left and right movement mechanics
         setVelocity();
-        if (Input.GetKey(KeyCode.A) ^ Input.GetKey(KeyCode.D))
+        if (mov.left ^ mov.right)
         {
             moveRequest = true;
             moveTranslate(currentVelocity);
@@ -294,6 +293,7 @@ public class PlayerController : MonoBehaviour
         {
             jump();
             jumpRequest = false;
+            jumpTicker = 0;
         }
         
         // move via forces if movement has been requested
