@@ -3,46 +3,52 @@ using UnityEngine.UIElements;
 
 public class PlayerController : MonoBehaviour
 {
+    // object components
+    private Rigidbody2D rb;
+    private Collider2D collider;
+    private Renderer rend;
+    
     // constants
     private const float maxHold = 1f; // number of seconds after holding jump that currentJumpForce = pounceForce
     private const float minHold = 0.2f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to pounceForce
-    private const float climbTime = 3.0f; // amount of time in seconds that a player can climb
+    private const float climbTime = 3f; // amount of time in seconds that a player can climb
 
     // serialized variables (can be modified in the editor)
-    [SerializeField] public Vector2 jumpForce = new Vector2(0f, 15f);
-    [SerializeField] public Vector2 pounceForce = new Vector2(40f, 5f);
+    [SerializeField] public Vector2 jumpForce = new Vector2(0f, 15f); // the amount of force to be applied to the player when they jump
+    [SerializeField] public Vector2 pounceForce = new Vector2(40f, 5f); // the amount of force to be applied to the player after a fully charged pounce
     [SerializeField] public Vector2 speedForce = new Vector2(2f, 0f); // speedForce determines how much the translational movement is affected by acceleration (via forces)
     [SerializeField] public Vector2 walkSpeed = new Vector2(5f, 0f); // walkSpeed determines how much the translational movement is immediate (direct translation)
-    [SerializeField] public Vector2 crawlSpeed = new Vector2(2f, 0f);
-    [SerializeField] public Vector2 sprintSpeed = new Vector2(8f, 0f);
+    [SerializeField] public Vector2 crawlSpeed = new Vector2(2f, 0f); // crawlSpeed is an alternative to walkSpeed used when the player is crouched
+    [SerializeField] public Vector2 sprintSpeed = new Vector2(8f, 0f); // sprintSpeed is an alternative to walkSpeed used when the player is sprinting
     
-    // object/components
-    private static Rigidbody2D rb;
-    private static Collider2D collider;
-    private static Renderer rend;
-
     // player states
-    private static Direction1D facing = Direction1D.RIGHT;
-    private static bool isOnGround = false;
+    private Direction1D facing = Direction1D.RIGHT;
+    private bool isOnGround = false;
 
     // Update() and FixedUpdate() interactions
-    private static bool jumpRequest = false;
-    private static bool moveRequest = false;
+    private bool jumpRequest = false;
+    private bool moveRequest = false;
 
     // miscellaneous
+    private Movement mov = new Movement();
     private float pounceTicker = 0.0f; // amount of time in seconds that the space bar (jump key) has been held
-    private static Movement mov = new Movement();
-    private static Vector3 lastPos;
-    private static Vector3 currentPos;
+    private Vector3 lastPos;
+    private Vector3 currentPos;
 
-    // "current" values
-    private static Vector2 currentJumpForce = new Vector2(0f, 0f);
-    private static Vector2 currentVelocity = new Vector2(0f, 0f);
+    // current values
+    private Vector2 currentJumpForce = new Vector2(0f, 0f);
+    private Vector2 currentVelocity = new Vector2(0f, 0f);
     
 
     
     // ----- ##### ----- ##### ----- ##### -----
 
+    /// <summary>
+    /// Listen for particular keys pressed.
+    /// </summary>
+    /// <remarks>
+    /// Converts multiple keypresses with the same functionality to a single attribute, i.e. A and left arrow both affect mov.left.
+    /// </remarks>
     void eventListen()
     {
         // listen for jump-related keys down
@@ -93,7 +99,7 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates the currentJumpForce
+    /// Updates the currentJumpForce.
     /// </summary>
     /// <param name="t">The amount of time that the space key was held</param>
     void updateJumpForce(float t)
@@ -117,8 +123,7 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Update the pounceTicker variable
-    /// Ensure that the player cannot move while charging a pounce
+    /// Update the pounceTicker variable.
     /// </summary>
     void chargePounce()
     {
@@ -138,7 +143,7 @@ public class PlayerController : MonoBehaviour
     }
     
     /// <summary>
-    /// Make the player jump
+    /// Make the player jump.
     /// </summary>
     void jump()
     {
@@ -153,7 +158,7 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Update the facing variable based on the left/right movement keys that are pressed
+    /// Update the facing variable based on the left/right movement keys that are pressed.
     /// </summary>
     void updateFacing()
     {
@@ -162,12 +167,12 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Update player velocity based on keypresses
+    /// Update player velocity based on keypresses.
     /// </summary>
     /// <remarks>
-    /// XOR is used so that velocity is nullified if both left (A) and right (D) keys are pressed in addition to if neither are pressed
-    /// Directionality is handled by the facing variable. currentVelocity determines the speed at which the player is moving
-    /// When either A or D is pressed and S is pressed, the player moves at a crawling speed instead
+    /// XOR is used so that velocity is nullified if both left (A) and right (D) keys are pressed in addition to if neither are pressed.
+    /// Directionality is handled by the facing variable. currentVelocity determines the speed at which the player is moving.
+    /// When either A or D is pressed and S is pressed, the player moves at a crawling speed instead.
     /// </remarks>
     void setVelocity()
     {
@@ -187,7 +192,7 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Move the player based on their current speed force
+    /// Move the player based on their current speed force.
     /// </summary>
     /// <param name="force">The "force" speed to be applied</param>
     void moveForce(Vector2 force)
@@ -197,7 +202,7 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Move the player based on their current speed
+    /// Move the player based on their current speed.
     /// </summary>
     /// <param name="speed"></param>
     void moveTranslate(Vector2 speed)
@@ -220,17 +225,24 @@ public class PlayerController : MonoBehaviour
         lastPos = transform.position;
     }
 
-    // Update is called once per frame
+    /// <summary>
+    /// Handles frame-based events and sends physics-based requests to FixedUpdate().
+    /// </summary>
+    /// <remarks>
+    /// Runs once per render frame, which is variable.
+    /// Handles immediate translational movement.
+    /// Handles pounce charging.
+    /// </remarks>
     void Update()
     {        
         // prepare relative variables (e.g. currentPos (corresponding to lastPos))
         currentPos = transform.position;
 
         // update listeners
-        // eventListen();
+        eventListen();
 
         // update ground collision
-        // isOnGround = collider.IsTouchingLayers(3);
+        isOnGround = collider.IsTouchingLayers(3);
 
 
         // determine which way the player is facing
@@ -238,7 +250,7 @@ public class PlayerController : MonoBehaviour
 
         // jump and pounce mechanics
         chargePounce(); 
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W)) 
+        if (mov.jump && isOnGround) 
         {
             jumpRequest = true;
         }
@@ -253,10 +265,10 @@ public class PlayerController : MonoBehaviour
 
 
         // debug
-        // print("Velocity: " + currentVelocity.x);
-        // print("Force: " + speedForce.x);
-        // print("Facing: " + facing);
-        // print("Facing (int): " + (int)facing);
+        print(mov.left);
+        print(mov.right);
+        print(mov.jump);
+        print(mov.crouch);
 
         // prepare for next tick
         currentVelocity.x = 0;
@@ -264,7 +276,14 @@ public class PlayerController : MonoBehaviour
         lastPos = transform.position;
     }
 
-    // FixedUpdate is called at a fixed rate of 50 hertz
+    /// <summary>
+    /// Handles the physics-based actions and movement on the player.
+    /// </summary>
+    /// <remarks>
+    /// Runs once per physics frame, i.e. 50 times a second.
+    /// Makes the player jump if a jump has been requested by Update().
+    /// Applies the force-based left/right movement if requested by Update().
+    /// </remarks>
     void FixedUpdate()
     {
         // ensure that the player is not rotated
@@ -281,7 +300,6 @@ public class PlayerController : MonoBehaviour
         if (moveRequest) {
             moveForce(speedForce);
             moveRequest = false;
-            print(speedForce.x);
         }
     }
 
@@ -300,7 +318,7 @@ public class PlayerController : MonoBehaviour
     // ----- ##### ----- ##### ----- ##### -----
 
     /// <summary>
-    /// Movement class used for booleans pertaining to movement
+    /// Movement class used for booleans pertaining to movement.
     /// </summary>
     /// <remarks>
     /// Each boolean is representative of a specific movement option (e.g. left, jump, crouch, etc) and is used to determine when and if the player should perform a certain movement option.
