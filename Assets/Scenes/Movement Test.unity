@@ -307,9 +307,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   jumpForce: {x: 0, y: 18}
   pounceForce: {x: 30, y: 10}
-  speedForce: {x: 3, y: 0}
-  walkSpeed: {x: 5, y: 0}
-  crawlSpeed: {x: 3, y: 0}
+  speedForce: {x: 20, y: 0}
+  walkSpeed: {x: 3, y: 0}
+  crawlSpeed: {x: 2, y: 0}
   sprintSpeed: {x: 8, y: 0}
 --- !u!50 &237594096
 Rigidbody2D:

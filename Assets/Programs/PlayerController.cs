@@ -31,6 +31,7 @@ public class PlayerController : MonoBehaviour
 
     // miscellaneous
     private float pounceTicker = 0.0f; // amount of time in seconds that the space bar (jump key) has been held
+    private static Movement mov = new Movement();
     private static Vector3 lastPos;
     private static Vector3 currentPos;
 
@@ -41,6 +42,11 @@ public class PlayerController : MonoBehaviour
 
     
     // ----- ##### ----- ##### ----- ##### -----
+
+    // void eventListen()
+    // {
+    //     if (GetKeyDown)
+    // }
 
     /// <summary>
     /// Updates the currentJumpForce
@@ -200,10 +206,10 @@ public class PlayerController : MonoBehaviour
 
 
         // debug
-        print("Velocity: " + currentVelocity.x);
-        print("Force: " + speedForce.x);
-        print("Facing: " + facing);
-        print("Facing (int): " + (int)facing);
+        // print("Velocity: " + currentVelocity.x);
+        // print("Force: " + speedForce.x);
+        // print("Facing: " + facing);
+        // print("Facing (int): " + (int)facing);
 
         // prepare for next tick
         currentVelocity.x = 0;
@@ -228,6 +234,7 @@ public class PlayerController : MonoBehaviour
         if (moveRequest) {
             moveForce(speedForce);
             moveRequest = false;
+            print(speedForce.x);
         }
     }
 
@@ -239,6 +246,34 @@ public class PlayerController : MonoBehaviour
     {
         LEFT = -1,
         RIGHT = 1
+    }
+
+
+
+    // ----- ##### ----- ##### ----- ##### -----
+
+    /// <summary>
+    /// Movement class used for booleans pertaining to movement
+    /// </summary>
+    /// <remarks>
+    /// Each boolean is representative of a specific movement option (e.g. left, jump, crouch, etc) and is used to determine when and if the player should perform a certain movement option.
+    /// </remarks>
+    public class Movement
+    {
+        public bool left;
+        public bool right;
+        public bool jump;
+        public bool crouch;
+        public bool sprint;
+
+        public Movement()
+        {
+            this.left = false;
+            this.right = false;
+            this.jump = false;
+            this.crouch = false;
+            this.sprint = false;
+        }
     }
     
 }
