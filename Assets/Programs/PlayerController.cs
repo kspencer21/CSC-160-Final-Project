@@ -18,7 +18,9 @@ public class PlayerController : MonoBehaviour
     private const float maxHold = 1f; // number of seconds after holding jump that currentJumpForce = pounceForce
     private const float minHold = 0.2f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to pounceForce
     private const float climbTime = 3f; // amount of time in seconds that a player can climb
-    private const float jumpCooldown = 0.1f;
+    private const float jumpCooldown = 0.1f; // amount of time in seconds after jumping that a player can jump again
+    private const float airForceFactor = 0.5f; // how much to multiply the speedForce by when in air
+    private const float airTranslationFactor = 0.8f; // how much to multiply the crawlSpeed by when in air
 
     // serialized variables (can be modified in the editor)
     [SerializeField] public Vector2 jumpForce = new Vector2(0f, 15f); // the amount of force to be applied to the player when they jump
@@ -60,7 +62,7 @@ public class PlayerController : MonoBehaviour
     void eventListen()
     {
         // listen for jump-related keys down
-        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.Space)) 
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.Mouse0)) 
         {
             mov.jump = true;
         } else 
@@ -184,12 +186,18 @@ public class PlayerController : MonoBehaviour
     /// </remarks>
     void setVelocity()
     {
-        if (mov.crouch)
+        if (isOnGround)
         {
-            currentVelocity.x = crawlSpeed.x;
+            if (mov.crouch)
+            {
+                currentVelocity.x = crawlSpeed.x;
+            } else
+            {
+                currentVelocity.x = walkSpeed.x;
+            }
         } else
         {
-            currentVelocity.x = walkSpeed.x;
+            currentVelocity.x = crawlSpeed.x * airTranslationFactor;
         }
     }
 
@@ -199,8 +207,10 @@ public class PlayerController : MonoBehaviour
     /// <param name="force">The "force" speed to be applied</param>
     void moveForce(Vector2 force)
     {
+        float f;
+        if (isOnGround) { f = 1; } else { f = airForceFactor; }
         // apply force
-        rb.AddForce(new Vector3((int)facing * force.x, force.y, 0), ForceMode2D.Force);
+        rb.AddForce(new Vector3((int)facing * force.x * f, force.y, 0), ForceMode2D.Force);
     }
 
     /// <summary>
@@ -295,6 +305,7 @@ public class PlayerController : MonoBehaviour
         {
             jump();
             jumpRequest = false;
+            isOnGround = false;
             jumpTicker = 0;
         }
         

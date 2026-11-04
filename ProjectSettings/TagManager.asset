@@ -52,4 +52,13 @@ TagManager:
     locked: 0
   m_RenderingLayers:
   - Default
+  - Background 1
+  - Background 2
+  - Collectibles
+  - NPCs
+  - Enemies
+  - Players
+  - Platforms
+  - Ground
+  - Foreground
   m_MigratedRenderPipelines: []
