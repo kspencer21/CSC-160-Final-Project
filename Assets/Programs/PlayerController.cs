@@ -20,7 +20,7 @@ public class PlayerController : MonoBehaviour
     private const float minHold = 0.2f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to pounceForce
     private const float climbTime = 3f; // amount of time in seconds that a player can climb
     private const float jumpCooldown = 0.1f; // amount of time in seconds after jumping that a player can jump again
-    private const float airForceFactor = 0.5f; // how much to multiply the speedForce by when in air
+    private const float airForceFactor = 0.2f; // how much to multiply the speedForce by when in air
     private const float airTranslationFactor = 0.8f; // how much to multiply the crawlSpeed by when in air
     private const float speedLimitWalk = 10f; // how far the player can move in a second when walking
     private const float speedLimitCrawl = 1f;
@@ -282,7 +282,6 @@ public class PlayerController : MonoBehaviour
         // apply speed limits
         // limitSpeedX(currentPos.x - lastPos.x, speedLimitWalk);
 
-
         // determine which way the player is facing
         updateFacing();
 
@@ -343,10 +342,13 @@ public class PlayerController : MonoBehaviour
     /// <param name="collision"></param>
     void OnCollisionEnter2D(Collision2D collision) // need to account for the case when the player hits an object before the ground, i.e. slides down a wall
     {
-        contactNormal = collision.contacts[0].normal;
-        if (contactNormal == new Vector2(0, 1) && collider.IsTouchingLayers(groundLayer))
+        foreach (ContactPoint2D i in collision.contacts)
         {
-            isOnGround = true;
+            if (i.normal == new Vector2(0, 1) && collider.IsTouchingLayers(groundLayer))
+            {
+                isOnGround = true;
+                contactNormal = i.normal;
+            }
         }
     }
 
@@ -356,7 +358,16 @@ public class PlayerController : MonoBehaviour
     /// <param name="collision"></param>
     void OnCollisionStay2D(Collision2D collision)
     {
-        // print("Colliding");
+        if (!isOnGround) { // only run if the player is not on the ground
+            foreach (ContactPoint2D i in collision.contacts)
+            {
+                if (i.normal == new Vector2(0, 1) && collider.IsTouchingLayers(groundLayer))
+                {
+                    isOnGround = true;
+                    contactNormal = i.normal;
+                }
+            }
+        }
     }
 
     /// <summary>

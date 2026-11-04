@@ -306,7 +306,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   jumpForce: {x: 0, y: 18}
-  pounceForce: {x: 30, y: 10}
+  pounceForce: {x: 20, y: 10}
   speedForce: {x: 20, y: 0}
   walkSpeed: {x: 2, y: 0}
   crawlSpeed: {x: 1, y: 0}
