@@ -177,7 +177,7 @@ public class PlayerController : MonoBehaviour
     /// Update player velocity based on keypresses.
     /// </summary>
     /// <remarks>
-    /// XOR is used so that velocity is nullified if both left (A) and right (D) keys are pressed in addition to if neither are pressed.
+    /// XOR is used so that velocity is nullified if both left and right movement keys are pressed in addition to if neither are pressed.
     /// Directionality is handled by the facing variable. currentVelocity determines the speed at which the player is moving.
     /// When either A or D is pressed and S is pressed, the player moves at a crawling speed instead.
     /// </remarks>
@@ -289,9 +289,6 @@ public class PlayerController : MonoBehaviour
     /// </remarks>
     void FixedUpdate()
     {
-        // ensure that the player is not rotated
-        transform.rotation = Quaternion.Euler(0f, 0f, 0f);
-        
         // jump if a jump has been requested
         if (jumpRequest)
         {
