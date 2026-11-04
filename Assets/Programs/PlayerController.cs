@@ -7,6 +7,11 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private Collider2D collider;
     private Renderer rend;
+
+    // layer masks
+    private int groundLayer;
+
+    private Vector2 contactNormal;
     
     // constants
     private const float maxHold = 1f; // number of seconds after holding jump that currentJumpForce = pounceForce
@@ -129,7 +134,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void chargePounce()
     {
-        if (mov.crouch) {
+        if (mov.crouch && isOnGround) {
             if (mov.left || mov.right)
             {
                 pounceTicker = 0;
@@ -218,6 +223,8 @@ public class PlayerController : MonoBehaviour
         collider = GetComponent<Collider2D>();
         rend = GetComponent<Renderer>();
 
+        groundLayer = LayerMask.GetMask("Ground");
+
         lastPos = transform.position;
     }
 
@@ -237,8 +244,8 @@ public class PlayerController : MonoBehaviour
         // update listeners
         eventListen();
 
-        // update ground collision
-        isOnGround = collider.IsTouchingLayers(3);
+        // update collision booleans
+        isOnGround = collider.IsTouchingLayers(groundLayer);
 
         // update jump cooldown timer
         jumpTicker += Time.deltaTime;
@@ -264,10 +271,7 @@ public class PlayerController : MonoBehaviour
 
 
         // debug
-        print(mov.left);
-        print(mov.right);
-        print(mov.jump);
-        print(mov.crouch);
+        // print(isOnGround);
 
         // prepare for next tick
         currentVelocity.x = 0;
@@ -301,6 +305,12 @@ public class PlayerController : MonoBehaviour
             moveForce(speedForce);
             moveRequest = false;
         }
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        contactNormal = collision.contacts[0].normal;
+        print(contactNormal);
     }
 
 
