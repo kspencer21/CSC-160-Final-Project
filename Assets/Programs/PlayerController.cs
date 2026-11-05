@@ -13,13 +13,13 @@ public class PlayerController : MonoBehaviour
     private int groundLayer;
 
     // normal vector of a collision
-    private Vector2 contactNormal = new Vector2(0, 0);
+    // private Vector2 contactNormal = new Vector2(0, 0);
     
     // constants
     private const float maxHold = 1f; // number of seconds after holding jump that currentJumpForce = pounceForce
     private const float minHold = 0.2f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to pounceForce
     private const float movingJumpBoost = 1f; // additional force to be applied only when the player is moving when they jump
-    private const float landBoost = 1f; // additional force to be applied when the player lands to account for the sudden friction
+    private const float landBoost = 1.5f; // additional force to be applied when the player lands to account for the sudden friction
     private const float climbTime = 3f; // amount of time in seconds that a player can climb
     private const float jumpCooldown = 0.1f; // amount of time in seconds after jumping that a player can jump again
     private const float airForceFactor = 0.2f; // how much to multiply the speedForce by when in air
@@ -29,15 +29,16 @@ public class PlayerController : MonoBehaviour
     private const float speedLimitSprint = 1f;
 
     // serialized variables (can be modified in the editor)
-    [SerializeField] public Vector2 jumpForce = new Vector2(0f, 15f); // the amount of force to be applied to the player when they jump
-    [SerializeField] public Vector2 pounceForce = new Vector2(40f, 5f); // the amount of force to be applied to the player after a fully charged pounce
-    [SerializeField] public Vector2 speedForce = new Vector2(2f, 0f); // speedForce determines how much the translational movement is affected by acceleration (via forces)
-    [SerializeField] public Vector2 walkSpeed = new Vector2(5f, 0f); // walkSpeed determines how much the translational movement is immediate (direct translation)
-    [SerializeField] public Vector2 crawlSpeed = new Vector2(2f, 0f); // crawlSpeed is an alternative to walkSpeed used when the player is crouched
-    [SerializeField] public Vector2 sprintSpeed = new Vector2(8f, 0f); // sprintSpeed is an alternative to walkSpeed used when the player is sprinting
+    [SerializeField] public Vector2 jumpForce = new Vector2(0f, 18f); // the amount of force to be applied to the player when they jump
+    [SerializeField] public Vector2 pounceForce = new Vector2(20f, 10f); // the amount of force to be applied to the player after a fully charged pounce
+    [SerializeField] public Vector2 speedForce = new Vector2(20f, 0f); // speedForce determines how much the translational movement is affected by acceleration (via forces)
+    [SerializeField] public Vector2 walkSpeed = new Vector2(2f, 0f); // walkSpeed determines how much the translational movement is immediate (direct translation)
+    [SerializeField] public Vector2 crawlSpeed = new Vector2(1f, 0f); // crawlSpeed is an alternative to walkSpeed used when the player is crouched
+    // [SerializeField] public Vector2 sprintSpeed = new Vector2(3f, 0f); // sprintSpeed is an alternative to walkSpeed used when the player is sprinting
     
     // player states
-    private Direction1D facing = Direction1D.RIGHT;
+    private Direction1D facing = Direction1D.RIGHT; // determines which way the player is facing
+    private Direction1D facingStrict = Direction1D.RIGHT; // a parallel to the facing variable which is only altered when the player is on the ground
     private bool isOnGround = false;
 
     // Update() and FixedUpdate() interactions
@@ -185,8 +186,24 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void updateFacing()
     {
-        if (mov.left) { facing = Direction1D.LEFT; }
-        if (mov.right) { facing = Direction1D.RIGHT; }
+        if (mov.left)
+        {
+            facing = Direction1D.LEFT;
+
+            if (isOnGround)
+            {
+                facingStrict = Direction1D.LEFT;
+            }
+        }
+        if (mov.right)
+        {
+            facing = Direction1D.RIGHT;
+
+            if (isOnGround)
+            {
+                facingStrict = Direction1D.RIGHT;
+            }
+        }
     }
 
     /// <summary>
@@ -311,7 +328,8 @@ public class PlayerController : MonoBehaviour
 
 
         // debug
-        // print(isOnGround);
+        print(facing);
+        print(facingStrict);
 
         // prepare for next tick
         currentVelocity.x = 0;
@@ -355,9 +373,11 @@ public class PlayerController : MonoBehaviour
         {
             if (i.normal == new Vector2(0, 1) && collider.IsTouchingLayers(groundLayer))
             {
+                // the player is on the ground
                 isOnGround = true;
-                contactNormal = i.normal;
-                if (mov.left ^ mov.right )
+                
+                // apply a landing force if the player is trying to move and they are facing the same direction as when they left the ground
+                if ((mov.left ^ mov.right) && facing == facingStrict)
                 {
                     rb.AddForce(new Vector3((int)facing * landBoost, 0, 0), ForceMode2D.Impulse);
                 }
@@ -366,18 +386,18 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Handles events as a collision happens continuously
+    /// Handles events as a collision happens continuously.
     /// </summary>
     /// <param name="collision"></param>
     void OnCollisionStay2D(Collision2D collision)
     {
         if (!isOnGround) { // only run if the player is not on the ground
-            foreach (ContactPoint2D i in collision.contacts)
+            foreach (ContactPoint2D i in collision.contacts) // check every object that the player is in contact with
             {
+                // the player is on the ground if any of the colliding objects is a ground object that is directly beneath the player
                 if (i.normal == new Vector2(0, 1) && collider.IsTouchingLayers(groundLayer))
                 {
                     isOnGround = true;
-                    contactNormal = i.normal;
                 }
             }
         }
@@ -389,10 +409,7 @@ public class PlayerController : MonoBehaviour
     /// <param name="collision"></param>
     void OnCollisionExit2D(Collision2D collision)
     {
-        if (contactNormal == new Vector2(0, 1))
-        {
-            isOnGround = false;
-        }
+        isOnGround = false; // if the player is not in contact with any collisions (i.e. just stopped colliding with anything), they must be in the air
     }
 
 
