@@ -58,6 +58,8 @@ public class PlayerController : MonoBehaviour
     private Vector2 currentVelocity = new Vector2(0f, 0f);
     
 
+
+
     
     // ----- ##### ----- ##### ----- ##### -----
 
@@ -114,78 +116,6 @@ public class PlayerController : MonoBehaviour
         {
             mov.right = false;
         }
-    }
-
-    /// <summary>
-    /// Updates the currentJumpForce.
-    /// </summary>
-    /// <param name="t">The amount of time that the space key was held</param>
-    void updateJumpForce(float t)
-    {
-        this.pounceTicker = 0;
-
-        // default to the pounceForce values if the jump button has been held longer than maxHold (charge time)
-        if (t >= maxHold)
-        {
-            currentJumpForce.x = pounceForce.x;
-            currentJumpForce.y = pounceForce.y;
-        } else if (t <= minHold) // default to the jumpForce values if the jump button is not held longer than minHold (normal jump window)
-        {
-            currentJumpForce.x = jumpForce.x;
-            currentJumpForce.y = jumpForce.y;
-        } else // adjust jump force based on the amount of time the jump button is held
-        {
-            currentJumpForce.x = (int)facing * (float)(((pounceForce.x - jumpForce.x) / (maxHold - minHold) * (t - minHold)) + jumpForce.x);
-            currentJumpForce.y = (float)(((pounceForce.y - jumpForce.y) / (maxHold - minHold) * (t - minHold)) + jumpForce.y);
-        }
-    }
-
-    /// <summary>
-    /// Update the pounceTicker variable.
-    /// </summary>
-    void chargePounce()
-    {
-        if (mov.crouch && isOnGround) {
-            if (mov.left || mov.right)
-            {
-                pounceTicker = 0;
-            } else // only run when the player is crouching but not crawling
-            {
-                // update pounceTicker based on how much time has passed
-                pounceTicker += Time.deltaTime;
-            }
-        } else
-        {
-            pounceTicker = 0;
-        }
-    }
-    
-    /// <summary>
-    /// Make the player jump.
-    /// </summary>
-    void jump()
-    {
-        // update currentJumpForce accordingly
-        updateJumpForce(pounceTicker);
-
-        // provide a small boost for a moving jump (running/walking into a jump)
-        float a = 0;
-        if (currentJumpForce.x == jumpForce.x && currentJumpForce.y == jumpForce.y && (mov.left ^ mov.right))
-        {
-            if (movingJumpBoost / Math.Abs(velocityVector.x) < movingJumpBoost) // reference velocityVector only if the quotient is less than movingJumpBoost due to the nature of an inversely proportional relationship
-            {
-                a = movingJumpBoost / Math.Abs(velocityVector.x); // this creates a greater effect at lower speeds, i.e. the player just started moving
-            } else
-            {
-                a = movingJumpBoost;
-            }
-        }
-
-        // jump
-        rb.AddForce(new Vector3((int)facing * (currentJumpForce.x + a), currentJumpForce.y, 0), ForceMode2D.Impulse);
-
-        // reset the pounceTicker
-        pounceTicker = 0;
     }
 
     /// <summary>
@@ -276,6 +206,89 @@ public class PlayerController : MonoBehaviour
     //         print((currentPos.x - lastPos.x) / Time.deltaTime);
     //     }
     // }
+
+    /// <summary>
+    /// Updates the currentJumpForce.
+    /// </summary>
+    /// <param name="t">The amount of time that the pounce has  been charging</param>
+    void updateJumpForce(float t)
+    {
+        pounceTicker = 0;
+
+        // default to the pounceForce values if the jump button has been held longer than maxHold (charge time)
+        if (t >= maxHold)
+        {
+            currentJumpForce.x = pounceForce.x;
+            currentJumpForce.y = pounceForce.y;
+        } else if (t <= minHold) // default to the jumpForce values if the jump button is not held longer than minHold (normal jump window)
+        {
+            currentJumpForce.x = jumpForce.x;
+            currentJumpForce.y = jumpForce.y;
+        } else // adjust jump force based on the amount of time the jump button is held
+        {
+            currentJumpForce.x = (int)facing * (float)(((pounceForce.x - jumpForce.x) / (maxHold - minHold) * (t - minHold)) + jumpForce.x);
+            currentJumpForce.y = (float)(((pounceForce.y - jumpForce.y) / (maxHold - minHold) * (t - minHold)) + jumpForce.y);
+        }
+    }
+
+    /// <summary>
+    /// Default method for updateJumpForce().
+    /// </summary>
+    /// <remarks>
+    /// Uses pounceTicker by default
+    /// </remarks>
+    void updateJumpForce()
+    {
+        updateJumpForce(pounceTicker);
+    }
+
+    /// <summary>
+    /// Update the pounceTicker variable.
+    /// </summary>
+    void chargePounce()
+    {
+        if (mov.crouch && isOnGround) {
+            if (mov.left || mov.right)
+            {
+                pounceTicker = 0;
+            } else // only run when the player is crouching but not crawling
+            {
+                // update pounceTicker based on how much time has passed
+                pounceTicker += Time.deltaTime;
+            }
+        } else
+        {
+            pounceTicker = 0;
+        }
+    }
+    
+    /// <summary>
+    /// Make the player jump.
+    /// </summary>
+    void jump()
+    {
+        // update currentJumpForce accordingly
+        updateJumpForce(pounceTicker);
+
+        // provide a small boost for a moving jump (running/walking into a jump)
+        float a = 0;
+        if (currentJumpForce.x == jumpForce.x && currentJumpForce.y == jumpForce.y && (mov.left ^ mov.right))
+        {
+            if (movingJumpBoost / Math.Abs(velocityVector.x) < movingJumpBoost) // reference velocityVector only if the quotient is less than movingJumpBoost due to the nature of an inversely proportional relationship
+            {
+                a = movingJumpBoost / Math.Abs(velocityVector.x); // this creates a greater effect at lower speeds, i.e. the player just started moving
+            } else
+            {
+                a = movingJumpBoost;
+            }
+        }
+
+        // jump
+        rb.AddForce(new Vector3((int)facing * (currentJumpForce.x + a), currentJumpForce.y, 0), ForceMode2D.Impulse);
+
+        // reset the pounceTicker
+        pounceTicker = 0;
+    }
 
 
 
