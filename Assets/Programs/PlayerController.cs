@@ -18,6 +18,8 @@ public class PlayerController : MonoBehaviour
     // constants
     private const float maxHold = 1f; // number of seconds after holding jump that currentJumpForce = pounceForce
     private const float minHold = 0.2f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to pounceForce
+    private const float movingJumpBoost = 1f; // additional force to be applied only when the player is moving when they jump
+    private const float landBoost = 1f; // additional force to be applied when the player lands to account for the sudden friction
     private const float climbTime = 3f; // amount of time in seconds that a player can climb
     private const float jumpCooldown = 0.1f; // amount of time in seconds after jumping that a player can jump again
     private const float airForceFactor = 0.2f; // how much to multiply the speedForce by when in air
@@ -164,8 +166,15 @@ public class PlayerController : MonoBehaviour
         // update currentJumpForce accordingly
         updateJumpForce(pounceTicker);
 
+        // provide a small boost for a moving jump (running/walking into a jump)
+        float a = 0;
+        if (currentJumpForce.x == jumpForce.x && currentJumpForce.y == jumpForce.y && (mov.left ^ mov.right))
+        {
+            a = movingJumpBoost;
+        }
+
         // jump
-        rb.AddForce(new Vector3(currentJumpForce.x, currentJumpForce.y, 0), ForceMode2D.Impulse);
+        rb.AddForce(new Vector3((int)facing * (currentJumpForce.x + a), currentJumpForce.y, 0), ForceMode2D.Impulse);
 
         // reset the pounceTicker
         pounceTicker = 0;
@@ -348,6 +357,10 @@ public class PlayerController : MonoBehaviour
             {
                 isOnGround = true;
                 contactNormal = i.normal;
+                if (mov.left ^ mov.right )
+                {
+                    rb.AddForce(new Vector3((int)facing * landBoost, 0, 0), ForceMode2D.Impulse);
+                }
             }
         }
     }
