@@ -18,15 +18,15 @@ public class PlayerController : MonoBehaviour
     // constants
     private const float maxHold = 1f; // number of seconds after holding jump that currentJumpForce = pounceForce
     private const float minHold = 0.2f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to pounceForce
-    private const float movingJumpBoost = 1f; // additional force to be applied only when the player is moving when they jump
+    private const float movingJumpBoost = 2.5f; // additional force to be applied only when the player is moving when they jump. Modified by the player's velocityVector
     private const float landBoost = 1.5f; // additional force to be applied when the player lands to account for the sudden friction
     private const float climbTime = 3f; // amount of time in seconds that a player can climb
     private const float jumpCooldown = 0.1f; // amount of time in seconds after jumping that a player can jump again
     private const float airForceFactor = 0.2f; // how much to multiply the speedForce by when in air
     private const float airTranslationFactor = 0.8f; // how much to multiply the crawlSpeed by when in air
-    private const float speedLimitWalk = 10f; // how far the player can move in a second when walking
-    private const float speedLimitCrawl = 1f;
-    private const float speedLimitSprint = 1f;
+    // private const float speedLimitWalk = 10f; // how far the player can move in a second when walking
+    // private const float speedLimitCrawl = 1f;
+    // private const float speedLimitSprint = 1f;
 
     // serialized variables (can be modified in the editor)
     [SerializeField] public Vector2 jumpForce = new Vector2(0f, 18f); // the amount of force to be applied to the player when they jump
@@ -40,6 +40,7 @@ public class PlayerController : MonoBehaviour
     private Direction1D facing = Direction1D.RIGHT; // determines which way the player is facing
     private Direction1D facingStrict = Direction1D.RIGHT; // a parallel to the facing variable which is only altered when the player is on the ground
     private bool isOnGround = false;
+    private Vector2 velocityVector; // the physics-based (i.e. from applied forces) velocity of the player
 
     // Update() and FixedUpdate() interactions
     private bool jumpRequest = false;
@@ -171,7 +172,13 @@ public class PlayerController : MonoBehaviour
         float a = 0;
         if (currentJumpForce.x == jumpForce.x && currentJumpForce.y == jumpForce.y && (mov.left ^ mov.right))
         {
-            a = movingJumpBoost;
+            if (movingJumpBoost / Math.Abs(velocityVector.x) < movingJumpBoost) // reference velocityVector only if the quotient is less than movingJumpBoost due to the nature of an inversely proportional relationship
+            {
+                a = movingJumpBoost / Math.Abs(velocityVector.x); // this creates a greater effect at lower speeds, i.e. the player just started moving
+            } else
+            {
+                a = movingJumpBoost;
+            }
         }
 
         // jump
@@ -260,15 +267,17 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     /// <param name="distance">distance the player traveled in the last tick</param>
     /// <param name="limit">how far the player is allowed to travel in a second</param>
-    void limitSpeedX(float distance, float limit)
-    {
-        if (Math.Abs(distance) > limit * Time.deltaTime)
-        {
-            transform.Translate(new Vector3(-1 * (distance - (limit * Time.deltaTime)), 0, 0));
-            print("Speeding ticket!");
-            print((currentPos.x - lastPos.x) / Time.deltaTime);
-        }
-    }
+    // void limitSpeedX(float distance, float limit)
+    // {
+    //     if (Math.Abs(distance) > limit * Time.deltaTime)
+    //     {
+    //         transform.Translate(new Vector3(-1 * (distance - (limit * Time.deltaTime)), 0, 0));
+    //         print("Speeding ticket!");
+    //         print((currentPos.x - lastPos.x) / Time.deltaTime);
+    //     }
+    // }
+
+
 
 
 
@@ -298,6 +307,7 @@ public class PlayerController : MonoBehaviour
     {        
         // prepare relative variables (e.g. currentPos (corresponding to lastPos))
         currentPos = transform.position;
+        velocityVector = rb.linearVelocity; // this does not account for non-force-based movement
 
         // update listeners
         eventListen();
@@ -328,8 +338,7 @@ public class PlayerController : MonoBehaviour
 
 
         // debug
-        print(facing);
-        print(facingStrict);
+        print(velocityVector.x);
 
         // prepare for next tick
         currentVelocity.x = 0;
@@ -414,6 +423,8 @@ public class PlayerController : MonoBehaviour
 
 
 
+
+
     // ----- ##### ----- ##### ----- ##### -----
 
     public enum Direction1D
@@ -421,6 +432,8 @@ public class PlayerController : MonoBehaviour
         LEFT = -1,
         RIGHT = 1
     }
+
+
 
 
 
