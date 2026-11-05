@@ -12,6 +12,10 @@ public class PlayerController : MonoBehaviour
     // layer masks
     private int groundLayer;
 
+    // tags
+    private int groundTag;
+    private int climbableTag;
+
     // normal vector of a collision
     // private Vector2 contactNormal = new Vector2(0, 0);
     
@@ -126,20 +130,18 @@ public class PlayerController : MonoBehaviour
         if (mov.left)
         {
             facing = Direction1D.LEFT;
-
-            if (isOnGround)
-            {
-                facingStrict = Direction1D.LEFT;
-            }
         }
         if (mov.right)
         {
             facing = Direction1D.RIGHT;
+        }
 
-            if (isOnGround)
-            {
-                facingStrict = Direction1D.RIGHT;
-            }
+        if (velocityVector.x > 0)
+        {
+            facingStrict = Direction1D.RIGHT;
+        } else if (velocityVector.x < 0)
+        {
+            facingStrict = Direction1D.LEFT;
         }
     }
 
@@ -303,7 +305,7 @@ public class PlayerController : MonoBehaviour
         collider = GetComponent<Collider2D>();
         rend = GetComponent<Renderer>();
 
-        groundLayer = LayerMask.GetMask("Ground");
+        // groundLayer = LayerMask.GetMask("Ground");
 
         lastPos = transform.position;
     }
@@ -351,7 +353,7 @@ public class PlayerController : MonoBehaviour
 
 
         // debug
-        print(velocityVector.x);
+        print(facingStrict);
 
         // prepare for next tick
         currentVelocity.x = 0;
@@ -393,7 +395,7 @@ public class PlayerController : MonoBehaviour
     {
         foreach (ContactPoint2D i in collision.contacts)
         {
-            if (i.normal == new Vector2(0, 1) && collider.IsTouchingLayers(groundLayer))
+            if (i.normal == new Vector2(0, 1) && collider.IsTouchingLayers(LayerMasks.ground))
             {
                 // the player is on the ground
                 isOnGround = true;
@@ -417,7 +419,7 @@ public class PlayerController : MonoBehaviour
             foreach (ContactPoint2D i in collision.contacts) // check every object that the player is in contact with
             {
                 // the player is on the ground if any of the colliding objects is a ground object that is directly beneath the player
-                if (i.normal == new Vector2(0, 1) && collider.IsTouchingLayers(groundLayer))
+                if (i.normal == new Vector2(0, 1) && collider.IsTouchingLayers(LayerMasks.ground))
                 {
                     isOnGround = true;
                 }
@@ -474,6 +476,28 @@ public class PlayerController : MonoBehaviour
             this.crouch = false;
             this.sprint = false;
         }
+    }
+
+    /// <summary>
+    /// A class used to hold all of the tags.
+    /// </summary>
+    public class Tag
+    {
+        public static string ground = "Ground";
+        public static string climbable = "Climbable";
+    }
+
+    /// <summary>
+    /// A class used to hold all of the layer masks in a simplified form.
+    /// </summary>
+    public class LayerMasks
+    {
+        public static int ground = LayerMask.GetMask("Ground");
+        public static int wall = LayerMask.GetMask("Wall");
+        public static int player = LayerMask.GetMask("Player");
+        public static int enemy = LayerMask.GetMask("Enemy");
+        public static int npc = LayerMask.GetMask("NPC");
+        public static int collectible = LayerMask.GetMask("Collectible");
     }
     
 }
