@@ -15,31 +15,25 @@ public class PlayerController : MonoBehaviour
     // tags
     private int groundTag;
     private int climbableTag;
-
-    // normal vector of a collision
-    // private Vector2 contactNormal = new Vector2(0, 0);
     
     // constants
     private const float maxHold = 1f; // number of seconds after holding jump that currentJumpForce = pounceForce
     private const float minHold = 0.2f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to pounceForce
-    private const float movingJumpBoost = 4f; // additional force to be applied only when the player is moving when they jump. Modified by the player's velocityVector
-    private const float landBoost = 1.5f; // additional force to be applied when the player lands to account for the sudden friction
     private const float climbTime = 3f; // amount of time in seconds that a player can climb
     private const float jumpCooldown = 0.1f; // amount of time in seconds after jumping that a player can jump again
-    private const float limitNullifierLength = 1f; // amount of time in seconds that limitSpeedX() is ignored after a pounce
-    private const float airForceFactor = 0.2f; // how much to multiply the speedForce by when in air
-    private const float airTranslationFactor = 0.8f; // how much to multiply the crawlSpeed by when in air
-    private const float speedLimitWalk = 7f; // how far the player can move in a second when walking
-    // private const float speedLimitCrawl = 1f;
-    // private const float speedLimitSprint = 1f;
+    private const float limitNullifierLength = 0.5325f; // amount of time in seconds that limitSpeedX() is ignored after a pounce
 
     // serialized variables (can be modified in the editor)
     [SerializeField] public Vector2 jumpForce = new Vector2(0f, 18f); // the amount of force to be applied to the player when they jump
     [SerializeField] public Vector2 pounceForce = new Vector2(20f, 10f); // the amount of force to be applied to the player after a fully charged pounce
+    [SerializeField] public float movingJumpBoost = 5f; // additional force to be applied only when the player is moving when they jump. Modified by the player's velocityVector
+    [SerializeField] public float landBoost = 1.5f; // additional force to be applied when the player lands to account for the sudden friction
     [SerializeField] public Vector2 speedForce = new Vector2(20f, 0f); // speedForce determines how much the translational movement is affected by acceleration (via forces)
     [SerializeField] public Vector2 walkSpeed = new Vector2(2f, 0f); // walkSpeed determines how much the translational movement is immediate (direct translation)
     [SerializeField] public Vector2 crawlSpeed = new Vector2(1f, 0f); // crawlSpeed is an alternative to walkSpeed used when the player is crouched
-    // [SerializeField] public Vector2 sprintSpeed = new Vector2(3f, 0f); // sprintSpeed is an alternative to walkSpeed used when the player is sprinting
+    [SerializeField] public float airForceFactor = 0.2f; // how much to multiply the speedForce by when in air
+    [SerializeField] public float airTranslationFactor = 0.8f; // how much to multiply the crawlSpeed by when in air
+    [SerializeField] public float speedLimitWalk = 7f; // how far the player can move in a second when walking
     
     // player states
     private Direction1D facing = Direction1D.RIGHT; // determines which way the player is facing
@@ -54,8 +48,8 @@ public class PlayerController : MonoBehaviour
     // miscellaneous
     private Movement mov = new Movement();
     private float pounceTicker = 0f; // amount of time in seconds that a pounce has been charged
-    private float jumpTicker = 0f; // amount of time in seconds after the last jump
-    private float limitNullifier = 0f; // amount of time after a pounce. Used to nullify the limitSpeedX() method and enable longer pounces
+    private float jumpTicker = jumpCooldown; // amount of time in seconds after the last jump
+    private float limitNullifier = limitNullifierLength; // amount of time after a pounce. Used to nullify the limitSpeedX() method and enable longer pounces
     private Vector3 lastPos;
     private Vector3 currentPos;
 
@@ -138,7 +132,7 @@ public class PlayerController : MonoBehaviour
             facing = Direction1D.RIGHT;
         } else
         {
-            facing = Direction1D.NULL;
+            // facing = Direction1D.NULL;
         }
 
         // update facingStrict based on player's velocity direction
@@ -150,7 +144,7 @@ public class PlayerController : MonoBehaviour
             facingStrict = Direction1D.LEFT;
         } else
         {
-            facingStrict = Direction1D.NULL;
+            // facingStrict = Direction1D.NULL;
         }
     }
 
@@ -214,9 +208,12 @@ public class PlayerController : MonoBehaviour
     /// </remarks>
     void limitSpeedX(float velocity, float speed, float limit)
     {
-        if (Math.Abs(velocity + ((int)facingStrict * speed)) > limit)
+        if ((Math.Abs(velocity + ((int)facingStrict * speed)) > limit) && (limitNullifier > limitNullifierLength))
         {
             rb.linearVelocity = new Vector2((int)facingStrict * (limit - speed), rb.linearVelocity.y);
+        } else if (!(limitNullifier > limitNullifierLength))
+        {
+            print("Speed limit not checked");
         }
     }
 
@@ -230,11 +227,11 @@ public class PlayerController : MonoBehaviour
     /// </remarks>
     void limitSpeedX()
     {
-        if (Math.Abs(rb.linearVelocity.x + ((int)facingStrict) * walkSpeed.x) > speedLimitWalk)
-        {
-            rb.linearVelocity = new Vector2((int)facingStrict * (speedLimitWalk - walkSpeed.x), rb.linearVelocity.y);
-            print("Speeding ticket!");
-        }
+        limitSpeedX(rb.linearVelocity.x, walkSpeed.x, speedLimitWalk);
+        // if ((Math.Abs(rb.linearVelocity.x + ((int)facingStrict) * walkSpeed.x) > speedLimitWalk) && (limitNullifier > limitNullifierLength))
+        // {
+        //     rb.linearVelocity = new Vector2((int)facingStrict * (speedLimitWalk - walkSpeed.x), rb.linearVelocity.y);
+        // }
     }
 
     /// <summary>
@@ -250,14 +247,16 @@ public class PlayerController : MonoBehaviour
         {
             currentJumpForce.x = pounceForce.x;
             currentJumpForce.y = pounceForce.y;
+            limitNullifier = 0;
         } else if (t <= minHold) // default to the jumpForce values if the jump button is not held longer than minHold (normal jump window)
         {
             currentJumpForce.x = jumpForce.x;
             currentJumpForce.y = jumpForce.y;
         } else // adjust jump force based on the amount of time the jump button is held
         {
-            currentJumpForce.x = (int)facing * (float)(((pounceForce.x - jumpForce.x) / (maxHold - minHold) * (t - minHold)) + jumpForce.x);
+            currentJumpForce.x = (float)(((pounceForce.x - jumpForce.x) / (maxHold - minHold) * (t - minHold)) + jumpForce.x);
             currentJumpForce.y = (float)(((pounceForce.y - jumpForce.y) / (maxHold - minHold) * (t - minHold)) + jumpForce.y);
+            limitNullifier = 0;
         }
     }
 
@@ -315,8 +314,8 @@ public class PlayerController : MonoBehaviour
         }
 
         // jump
-        rb.AddForce(new Vector3((int)facing * (currentJumpForce.x + a), currentJumpForce.y, 0), ForceMode2D.Impulse);
-
+        rb.AddForce(new Vector3((int)facingStrict * (currentJumpForce.x + a), currentJumpForce.y, 0), ForceMode2D.Impulse);
+        
         // reset the pounceTicker
         pounceTicker = 0;
     }
@@ -357,8 +356,9 @@ public class PlayerController : MonoBehaviour
         // update listeners
         eventListen();
 
-        // update jump cooldown timer
+        // update tikers
         jumpTicker += Time.deltaTime;
+        limitNullifier += Time.deltaTime;
 
         // determine which way the player is facing
         updateFacing();
@@ -380,7 +380,8 @@ public class PlayerController : MonoBehaviour
 
 
         // debug
-        // print(facingStrict);
+        print(facing);
+        print(facingStrict);
 
         // prepare for next tick
         currentVelocity.x = 0;
@@ -415,13 +416,13 @@ public class PlayerController : MonoBehaviour
             moveForce(speedForce);
             moveRequest = false;
         }
-
+        
         // apply speed limit
         limitSpeedX();
 
 
         // debug
-        print(velocityVector.x + (int)facingStrict * walkSpeed.x);
+        // print(velocityVector.x + (int)facingStrict * walkSpeed.x);
     }
 
     /// <summary>
