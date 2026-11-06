@@ -271,7 +271,7 @@ GameObject:
   - component: {fileID: 237594096}
   - component: {fileID: 237594098}
   - component: {fileID: 237594094}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -307,10 +307,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   jumpForce: {x: 0, y: 18}
   pounceForce: {x: 20, y: 10}
+  movingJumpBoost: 5
+  landBoost: 1.5
   speedForce: {x: 20, y: 0}
   walkSpeed: {x: 2, y: 0}
   crawlSpeed: {x: 1, y: 0}
-  sprintSpeed: {x: 8, y: 0}
+  airForceFactor: 0.2
+  airTranslationFactor: 0.8
+  speedLimitWalk: 7
 --- !u!50 &237594096
 Rigidbody2D:
   serializedVersion: 5
@@ -1621,7 +1625,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1582782937
 Transform:
   m_ObjectHideFlags: 0

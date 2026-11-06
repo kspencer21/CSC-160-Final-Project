@@ -433,7 +433,7 @@ public class PlayerController : MonoBehaviour
     {
         foreach (ContactPoint2D i in collision.contacts)
         {
-            if (i.normal == new Vector2(0, 1) && collider.IsTouchingLayers(LayerMasks.ground))
+            if (i.normal == new Vector2(0, 1) && collider.IsTouchingLayers(Mask.ground))
             {
                 // the player is on the ground
                 isOnGround = true;
@@ -457,7 +457,7 @@ public class PlayerController : MonoBehaviour
             foreach (ContactPoint2D i in collision.contacts) // check every object that the player is in contact with
             {
                 // the player is on the ground if any of the colliding objects is a ground object that is directly beneath the player
-                if (i.normal == new Vector2(0, 1) && collider.IsTouchingLayers(LayerMasks.ground))
+                if (i.normal == new Vector2(0, 1) && collider.IsTouchingLayers(Mask.ground))
                 {
                     isOnGround = true;
                 }
@@ -532,7 +532,7 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// A class used to hold all of the layer masks in a simplified form.
     /// </summary>
-    public class LayerMasks
+    public class Mask
     {
         public static int ground = LayerMask.GetMask("Ground");
         public static int wall = LayerMask.GetMask("Wall");

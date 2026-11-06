@@ -5,14 +5,8 @@ TagManager:
   serializedVersion: 3
   tags:
   - Background
-  - Immobile Platform
-  - Mobile Platform
   - Ground
-  - Void
-  - Enemy
-  - NPC
-  - Collectible
-  - User Interface (UI)
+  - Climbable
   layers:
   - Default
   - TransparentFX
@@ -20,12 +14,12 @@ TagManager:
   - Ground
   - Water
   - UI
+  - Wall
+  - 
   - Player
   - Enemy
   - NPC
   - Collectible
-  - 
-  - 
   - 
   - 
   - 
