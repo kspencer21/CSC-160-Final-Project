@@ -22,13 +22,13 @@ public class PlayerController : MonoBehaviour
     // constants
     private const float maxHold = 1f; // number of seconds after holding jump that currentJumpForce = pounceForce
     private const float minHold = 0.2f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to pounceForce
-    private const float movingJumpBoost = 2.5f; // additional force to be applied only when the player is moving when they jump. Modified by the player's velocityVector
+    private const float movingJumpBoost = 4f; // additional force to be applied only when the player is moving when they jump. Modified by the player's velocityVector
     private const float landBoost = 1.5f; // additional force to be applied when the player lands to account for the sudden friction
     private const float climbTime = 3f; // amount of time in seconds that a player can climb
     private const float jumpCooldown = 0.1f; // amount of time in seconds after jumping that a player can jump again
     private const float airForceFactor = 0.2f; // how much to multiply the speedForce by when in air
     private const float airTranslationFactor = 0.8f; // how much to multiply the crawlSpeed by when in air
-    // private const float speedLimitWalk = 10f; // how far the player can move in a second when walking
+    private const float speedLimitWalk = 7f; // how far the player can move in a second when walking
     // private const float speedLimitCrawl = 1f;
     // private const float speedLimitSprint = 1f;
 
@@ -127,6 +127,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void updateFacing()
     {
+        // update facing based on inputs
         if (mov.left)
         {
             facing = Direction1D.LEFT;
@@ -136,6 +137,7 @@ public class PlayerController : MonoBehaviour
             facing = Direction1D.RIGHT;
         }
 
+        // update facingStrict based on player's velocity direction
         if (velocityVector.x > 0)
         {
             facingStrict = Direction1D.RIGHT;
@@ -197,17 +199,36 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// Limit how far the player can move in a single tick.
     /// </summary>
-    /// <param name="distance">distance the player traveled in the last tick</param>
+    /// <param name="velocity">physics-based velocity of the player</param>
+    /// <param name="speed">translation-based velocity of the player</param>
     /// <param name="limit">how far the player is allowed to travel in a second</param>
-    // void limitSpeedX(float distance, float limit)
-    // {
-    //     if (Math.Abs(distance) > limit * Time.deltaTime)
-    //     {
-    //         transform.Translate(new Vector3(-1 * (distance - (limit * Time.deltaTime)), 0, 0));
-    //         print("Speeding ticket!");
-    //         print((currentPos.x - lastPos.x) / Time.deltaTime);
-    //     }
-    // }
+    /// <remarks>
+    /// This only affects physics-based velocity.
+    /// </remarks>
+    void limitSpeedX(float velocity, float speed, float limit)
+    {
+        if (Math.Abs(velocity + ((int)facingStrict * speed)) > limit)
+        {
+            rb.linearVelocity = new Vector2((int)facingStrict * (limit - speed), rb.linearVelocity.y);
+        }
+    }
+
+    /// <summary>
+    /// Default equivalent of limitSpeedX(float, float)
+    /// </summary>
+    /// <remarks>
+    /// Uses rb.linearVelocity.x in place of velocity
+    /// Uses walkSpeed.x in place of speed
+    /// Uses speedLimitWalk in place of limit
+    /// </remarks>
+    void limitSpeedX()
+    {
+        if (Math.Abs(rb.linearVelocity.x + ((int)facingStrict) * walkSpeed.x) > speedLimitWalk)
+        {
+            rb.linearVelocity = new Vector2((int)facingStrict * (speedLimitWalk - walkSpeed.x), rb.linearVelocity.y);
+            print("Speeding ticket!");
+        }
+    }
 
     /// <summary>
     /// Updates the currentJumpForce.
@@ -267,6 +288,7 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// Make the player jump.
     /// </summary>
+    /// TODO: when jumping up directly alongside a platform, the player sometimes jumps as their bottom edge passes the platform's upper edge
     void jump()
     {
         // update currentJumpForce accordingly
@@ -276,9 +298,9 @@ public class PlayerController : MonoBehaviour
         float a = 0;
         if (currentJumpForce.x == jumpForce.x && currentJumpForce.y == jumpForce.y && (mov.left ^ mov.right))
         {
-            if (movingJumpBoost / Math.Abs(velocityVector.x) < movingJumpBoost) // reference velocityVector only if the quotient is less than movingJumpBoost due to the nature of an inversely proportional relationship
+            if (movingJumpBoost / (Math.Abs(velocityVector.x) + walkSpeed.x) < movingJumpBoost) // reference velocityVector only if the quotient is less than movingJumpBoost due to the nature of an inversely proportional relationship
             {
-                a = movingJumpBoost / Math.Abs(velocityVector.x); // this creates a greater effect at lower speeds, i.e. the player just started moving
+                a = movingJumpBoost / (Math.Abs(velocityVector.x) + walkSpeed.x); // this creates a greater effect at lower speeds, i.e. the player just started moving
             } else
             {
                 a = movingJumpBoost;
@@ -298,7 +320,9 @@ public class PlayerController : MonoBehaviour
 
     // ----- ##### ----- ##### ------ ##### -----
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    /// <summary>
+    /// Sets component variables (i.e. rigidbody, renderer, etc.) as well as difference variables (i.e. lastPos).
+    /// </summary>
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -322,16 +346,12 @@ public class PlayerController : MonoBehaviour
     {        
         // prepare relative variables (e.g. currentPos (corresponding to lastPos))
         currentPos = transform.position;
-        velocityVector = rb.linearVelocity; // this does not account for non-force-based movement
 
         // update listeners
         eventListen();
 
         // update jump cooldown timer
         jumpTicker += Time.deltaTime;
-        
-        // apply speed limits
-        // limitSpeedX(currentPos.x - lastPos.x, speedLimitWalk);
 
         // determine which way the player is facing
         updateFacing();
@@ -353,7 +373,7 @@ public class PlayerController : MonoBehaviour
 
 
         // debug
-        print(facingStrict);
+        // print(facingStrict);
 
         // prepare for next tick
         currentVelocity.x = 0;
@@ -371,6 +391,9 @@ public class PlayerController : MonoBehaviour
     /// </remarks>
     void FixedUpdate()
     {
+        // update velocityVector
+        velocityVector = rb.linearVelocity; // this does not account for non-force-based movement
+
         // jump if a jump has been requested
         if (jumpRequest)
         {
@@ -385,6 +408,13 @@ public class PlayerController : MonoBehaviour
             moveForce(speedForce);
             moveRequest = false;
         }
+
+        // apply speed limit
+        limitSpeedX();
+
+
+        // debug
+        print(velocityVector.x + (int)facingStrict * walkSpeed.x);
     }
 
     /// <summary>
@@ -442,9 +472,13 @@ public class PlayerController : MonoBehaviour
 
     // ----- ##### ----- ##### ----- ##### -----
 
+    /// <summary>
+    /// Enumerator with two values describing left, right, or neutral
+    /// </summary>
     public enum Direction1D
     {
         LEFT = -1,
+        NULL = 0,
         RIGHT = 1
     }
 
@@ -458,7 +492,7 @@ public class PlayerController : MonoBehaviour
     /// Movement class used for booleans pertaining to movement.
     /// </summary>
     /// <remarks>
-    /// Each boolean is representative of a specific movement option (e.g. left, jump, crouch, etc) and is used to determine when and if the player should perform a certain movement option.
+    /// Each boolean is representative of a specific movement option (e.g. left, jump, crouch, etc.) and is used to determine when and if the player should perform a certain movement option.
     /// </remarks>
     public class Movement
     {
