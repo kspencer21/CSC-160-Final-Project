@@ -26,6 +26,7 @@ public class PlayerController : MonoBehaviour
     private const float landBoost = 1.5f; // additional force to be applied when the player lands to account for the sudden friction
     private const float climbTime = 3f; // amount of time in seconds that a player can climb
     private const float jumpCooldown = 0.1f; // amount of time in seconds after jumping that a player can jump again
+    private const float limitNullifierLength = 1f; // amount of time in seconds that limitSpeedX() is ignored after a pounce
     private const float airForceFactor = 0.2f; // how much to multiply the speedForce by when in air
     private const float airTranslationFactor = 0.8f; // how much to multiply the crawlSpeed by when in air
     private const float speedLimitWalk = 7f; // how far the player can move in a second when walking
@@ -52,8 +53,9 @@ public class PlayerController : MonoBehaviour
 
     // miscellaneous
     private Movement mov = new Movement();
-    private float pounceTicker = 0f; // amount of time in seconds that the space bar (jump key) has been held
-    private float jumpTicker = 0f;
+    private float pounceTicker = 0f; // amount of time in seconds that a pounce has been charged
+    private float jumpTicker = 0f; // amount of time in seconds after the last jump
+    private float limitNullifier = 0f; // amount of time after a pounce. Used to nullify the limitSpeedX() method and enable longer pounces
     private Vector3 lastPos;
     private Vector3 currentPos;
 
