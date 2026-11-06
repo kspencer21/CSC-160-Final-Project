@@ -240,23 +240,34 @@ public class PlayerController : MonoBehaviour
     /// <param name="t">The amount of time that the pounce has  been charging</param>
     void updateJumpForce(float t)
     {
+        // reset pounceTicker
         pounceTicker = 0;
 
-        // default to the pounceForce values if the jump button has been held longer than maxHold (charge time)
         if (t >= maxHold)
         {
+            // set the jump force to pounceForce
             currentJumpForce.x = pounceForce.x;
             currentJumpForce.y = pounceForce.y;
+
+            // reset the speed limit nullifier ticker
             limitNullifier = 0;
-        } else if (t <= minHold) // default to the jumpForce values if the jump button is not held longer than minHold (normal jump window)
+        } else if (t <= minHold)
         {
+            // set the jump force to jumpForce
             currentJumpForce.x = jumpForce.x;
             currentJumpForce.y = jumpForce.y;
-        } else // adjust jump force based on the amount of time the jump button is held
+        } else
         {
-            currentJumpForce.x = (float)(((pounceForce.x - jumpForce.x) / (maxHold - minHold) * (t - minHold)) + jumpForce.x);
-            currentJumpForce.y = (float)(((pounceForce.y - jumpForce.y) / (maxHold - minHold) * (t - minHold)) + jumpForce.y);
-            limitNullifier = 0;
+            // gradually transition jump force from jumpForce to pounceForce
+            // currentJumpForce.x = (float)(((pounceForce.x - jumpForce.x) / (maxHold - minHold) * (t - minHold)) + jumpForce.x);
+            // currentJumpForce.y = (float)(((pounceForce.y - jumpForce.y) / (maxHold - minHold) * (t - minHold)) + jumpForce.y);
+
+            // set the jump force to the average between jumpForce and pounceForce
+            currentJumpForce.x = Math.Abs(pounceForce.x - jumpForce.x) / 2;
+            currentJumpForce.y = Math.Abs(pounceForce.y - jumpForce.y) / 2;
+
+            // reset the speed limit nullifier ticker
+            limitNullifier = 0; 
         }
     }
 
