@@ -128,13 +128,15 @@ public class PlayerController : MonoBehaviour
     void updateFacing()
     {
         // update facing based on inputs
-        if (mov.left)
+        if (mov.left && !mov.right)
         {
             facing = Direction1D.LEFT;
-        }
-        if (mov.right)
+        } else if (mov.right && !mov.left)
         {
             facing = Direction1D.RIGHT;
+        } else
+        {
+            facing = Direction1D.NULL;
         }
 
         // update facingStrict based on player's velocity direction
@@ -144,6 +146,9 @@ public class PlayerController : MonoBehaviour
         } else if (velocityVector.x < 0)
         {
             facingStrict = Direction1D.LEFT;
+        } else
+        {
+            facingStrict = Direction1D.NULL;
         }
     }
 
