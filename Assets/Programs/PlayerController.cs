@@ -17,11 +17,11 @@ public class PlayerController : MonoBehaviour
     private int climbableTag;
     
     // constants
-    private const float maxHold = 1f; // number of seconds after holding jump that currentJumpForce = pounceForce
-    private const float minHold = 0.2f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to pounceForce
+    private const float maxHold = 0.6f; // number of seconds that the player must hold crouch before pouncing for currentJumpForce = pounceForce
+    private const float minHold = 0.1f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to average of jumpForce and pounceForce
     private const float climbTime = 3f; // amount of time in seconds that a player can climb
-    private const float jumpCooldown = 0.1f; // amount of time in seconds after jumping that a player can jump again
-    private const float limitNullifierLength = 0.5325f; // amount of time in seconds that limitSpeedX() is ignored after a pounce
+    private const float jumpCooldown = 0.4f; // amount of time in seconds after jumping that a player can jump again
+    private const float limitNullifierLength = 0.5f; // amount of time in seconds that limitSpeedX() is ignored after a pounce
 
     // serialized variables (can be modified in the editor)
     [SerializeField] public Vector2 jumpForce = new Vector2(0f, 18f); // the amount of force to be applied to the player when they jump
@@ -211,9 +211,6 @@ public class PlayerController : MonoBehaviour
         if ((Math.Abs(velocity + ((int)facingStrict * speed)) > limit) && (limitNullifier > limitNullifierLength))
         {
             rb.linearVelocity = new Vector2((int)facingStrict * (limit - speed), rb.linearVelocity.y);
-        } else if (!(limitNullifier > limitNullifierLength))
-        {
-            print("Speed limit not checked");
         }
     }
 
@@ -264,7 +261,7 @@ public class PlayerController : MonoBehaviour
 
             // set the jump force to the average between jumpForce and pounceForce
             currentJumpForce.x = Math.Abs(pounceForce.x - jumpForce.x) / 2;
-            currentJumpForce.y = Math.Abs(pounceForce.y - jumpForce.y) / 2;
+            currentJumpForce.y = pounceForce.y;
 
             // reset the speed limit nullifier ticker
             limitNullifier = 0; 
@@ -311,7 +308,33 @@ public class PlayerController : MonoBehaviour
         // update currentJumpForce accordingly
         updateJumpForce(pounceTicker);
 
-        // provide a small boost for a moving jump (running/walking into a jump)
+        // jump
+        rb.AddForce(new Vector3(((int)facingStrict * currentJumpForce.x) + ((int)facing * addMovingJumpBoost()), currentJumpForce.y, 0), ForceMode2D.Impulse);
+        
+        // reset the pounceTicker
+        pounceTicker = 0;
+    }
+
+    /// <summary>
+    /// Applies a force to the player when they land.
+    /// </summary>
+    /// <remarks>
+    /// This is called by OnCollisionEnter()
+    /// </remarks>
+    void addLandForce()
+    {
+        rb.AddForce(new Vector3((int)facing * landBoost, 0, 0), ForceMode2D.Impulse);
+    }
+
+    /// <summary>
+    /// Add a boost as the player jumps.
+    /// </summary>
+    /// <return>A float to be additionally applied to the x jump force</return>
+    /// <remarks>
+    /// This is to counteract the sudden decrease in player speed as they lose some control in the air
+    /// </remarks>
+    float addMovingJumpBoost()
+    {
         float a = 0;
         if (currentJumpForce.x == jumpForce.x && currentJumpForce.y == jumpForce.y && (mov.left ^ mov.right))
         {
@@ -323,12 +346,7 @@ public class PlayerController : MonoBehaviour
                 a = movingJumpBoost;
             }
         }
-
-        // jump
-        rb.AddForce(new Vector3((int)facingStrict * (currentJumpForce.x + a), currentJumpForce.y, 0), ForceMode2D.Impulse);
-        
-        // reset the pounceTicker
-        pounceTicker = 0;
+        return a;
     }
 
 
@@ -391,8 +409,8 @@ public class PlayerController : MonoBehaviour
 
 
         // debug
-        print(facing);
-        print(facingStrict);
+        // print(facing);
+        // print(facingStrict);
 
         // prepare for next tick
         currentVelocity.x = 0;
@@ -452,7 +470,7 @@ public class PlayerController : MonoBehaviour
                 // apply a landing force if the player is trying to move and they are facing the same direction as when they left the ground
                 if ((mov.left ^ mov.right) && facing == facingStrict)
                 {
-                    rb.AddForce(new Vector3((int)facing * landBoost, 0, 0), ForceMode2D.Impulse);
+                    addLandForce();
                 }
             }
         }
