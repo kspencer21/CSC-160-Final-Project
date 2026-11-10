@@ -1,13 +1,10 @@
 fileFormatVersion: 2
-guid: d685789d3d073184980868bb68b556a8
+guid: 31ca90f304ce7bf469e259682167a8c6
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -5692375348429356197
-    second: catScratchSmall_0
-  - first:
-      213: 7534900497367187767
-    second: catScratchSmall_1
+      213: 5124863903598338352
+    second: catExtraSmaller_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -103,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: catScratchSmall_0
+      name: catExtraSmaller_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 5
-        height: 17
+        width: 182
+        height: 129
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -118,30 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b538da4b7ce9001b0800000000000000
-      internalID: -5692375348429356197
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: catScratchSmall_1
-      rect:
-        serializedVersion: 2
-        x: 1
-        y: 0
-        width: 107
-        height: 196
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 7314c7ba418519860800000000000000
-      internalID: 7534900497367187767
+      spriteID: 0316330519c2f1740800000000000000
+      internalID: 5124863903598338352
       vertices: []
       indices: 
       edges: []
@@ -160,8 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      catScratchSmall_0: -5692375348429356197
-      catScratchSmall_1: 7534900497367187767
+      catExtraSmaller_0: 5124863903598338352
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

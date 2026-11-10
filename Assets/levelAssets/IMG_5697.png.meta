@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 0a9cfeb26d9027248938e757fa11b39a
+guid: 15a157bdbbeb2ba48873603dcca3b0c1
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5691444008980930661
-    second: catLights_0
+      213: -2722607637710324428
+    second: IMG_5697_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: catLights_0
+      name: IMG_5697_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 408
-        height: 419
+        width: 2360
+        height: 1640
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 560655eeb221cfe40800000000000000
-      internalID: 5691444008980930661
+      spriteID: 43db28b47ca573ad0800000000000000
+      internalID: -2722607637710324428
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      catLights_0: 5691444008980930661
+      IMG_5697_0: -2722607637710324428
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

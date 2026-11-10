@@ -1,13 +1,10 @@
 fileFormatVersion: 2
-guid: e483705cdd163944c84b7b8028675610
+guid: 85b5bd2c85b2050478eab27dca4d47ba
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 375611338854923614
-    second: catScratchPost_0
-  - first:
-      213: 8204638027626611299
-    second: catScratchPost_1
+      213: -3697920357312600531
+    second: catTowerSmall_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -103,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: catScratchPost_0
+      name: catTowerSmall_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 12
-        height: 41
+        width: 606
+        height: 540
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -118,30 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e5d7e0ac580763500800000000000000
-      internalID: 375611338854923614
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: catScratchPost_1
-      rect:
-        serializedVersion: 2
-        x: 6
-        y: 0
-        width: 276
-        height: 514
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 362885be0dabcd170800000000000000
-      internalID: 8204638027626611299
+      spriteID: d2662b607095eacc0800000000000000
+      internalID: -3697920357312600531
       vertices: []
       indices: 
       edges: []
@@ -160,8 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      catScratchPost_0: 375611338854923614
-      catScratchPost_1: 8204638027626611299
+      catTowerSmall_0: -3697920357312600531
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

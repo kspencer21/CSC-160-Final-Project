@@ -1,13 +1,10 @@
 fileFormatVersion: 2
-guid: 54647052a44eb5a42a9d5839f475b580
+guid: 203ac26ad41defc45880063dd0ff2779
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8897123354972333306
-    second: catBookCases_0
-  - first:
-      213: -2365800365094461032
-    second: catBookCases_1
+      213: -8414308734986028253
+    second: IMG_5698_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -103,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: catBookCases_0
+      name: IMG_5698_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 16
-        width: 647
-        height: 985
+        x: 9
+        y: 14
+        width: 129
+        height: 96
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -118,30 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: af425f76d8ee87b70800000000000000
-      internalID: 8897123354972333306
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: catBookCases_1
-      rect:
-        serializedVersion: 2
-        x: 218
-        y: 0
-        width: 8
-        height: 7
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8912e0d3a1dfa2fd0800000000000000
-      internalID: -2365800365094461032
+      spriteID: 32bf0b459ce5a3b80800000000000000
+      internalID: -8414308734986028253
       vertices: []
       indices: 
       edges: []
@@ -160,8 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      catBookCases_0: 8897123354972333306
-      catBookCases_1: -2365800365094461032
+      IMG_5698_0: -8414308734986028253
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
