@@ -417,35 +417,51 @@ public class PlayerController : MonoBehaviour
         return a;
     }
 
+    /// <summary>
+    /// Applies upper and lower bounds to a variable
+    /// </summary>
+    /// <param name="value">The variable to be affected</param>
+    /// <param name="upper">The upper bound of the value</param>
+    /// <param name="lower">The lower bound of the value</param>
+    /// <remarks>
+    /// The value argument is a reference argument so that the variable put in can be altered from within the method
+    /// </remarks>
+    void bind(ref float value, float upper, float lower)
+    {
+        if (value > upper) { value = upper; }
+        if (value < lower) { value = lower; }
+    }
+
+    /// <summary>
+    /// Apply upper and lower bounds to all serialized fields
+    /// </summary>
     void bindFields()
     {
-        if (jumpForce.x != 0) { jumpForce.x = 0; } // jumpForce.x should always be 0
-        if (jumpForce.y < 0) { jumpForce.y = 0; } // jumpForce.y should never be negative
+        bind(ref jumpForce.x, jumpForceBounds.max.x, jumpForceBounds.min.x);
+        bind(ref jumpForce.y, jumpForceBounds.max.y, jumpForceBounds.min.y);
 
-        if (pounceForce.x < 0) { pounceForce.x = 0; } // pounceForce.x should never be negative
-        if (pounceForce.y < 0) { pounceForce.y = 0; } // pounceForce.y should never be negative
+        bind(ref pounceForce.x, pounceForceBounds.max.x, pounceForceBounds.min.x);
+        bind(ref pounceForce.y, pounceForceBounds.max.y, pounceForceBounds.min.y);
 
-        if (movingJumpBoost < 0) { movingJumpBoost = 0; } // movingJumpBoost should never be negative
+        bind(ref movingJumpBoost, jumpBoostBounds.max, jumpBoostBounds.min);
 
-        if (landBoost < 0) { landBoost = 0; } // landBoost should never be negative
+        bind(ref landBoost, landBoostBounds.max, landBoostBounds.min);
 
-        if (speedForce.x < 0) { speedForce.x = 0; } // speedForce.x should never be negative
-        if (speedForce.y != 0) { speedForce.y = 0; } // speedForce.y should always be 0. This may change depending on how slopes are implemented
+        bind(ref speedForce.x, speedForceBounds.max.x, speedForceBounds.min.x);
+        bind(ref speedForce.y, speedForceBounds.max.y, speedForceBounds.min.y);
 
-        if (walkSpeed.x < 0) { walkSpeed.x = 0; } // walkSpeed.x should never be negative. The only implication of this is reversed controls
-        if (walkSpeed.y != 0) { walkSpeed.y = 0; } // walkSpeed.y should always be 0. See speedForce.y != 0
+        bind(ref walkSpeed.x, walkSpeedBounds.max.x, walkSpeedBounds.min.x);
+        bind(ref walkSpeed.y, walkSpeedBounds.max.y, walkSpeedBounds.min.y);
 
-        if (crawlSpeed.x < 0) { crawlSpeed.x = 0; } // crawlSpeed.x should never be negative. See walkSpeed.x < 0
-        if (crawlSpeed.y != 0) { crawlSpeed.y = 0; } // crawlSpeed.y should always be 0. See speedForce.y != 0
+        bind(ref crawlSpeed.x, crawlSpeedBounds.max.x, crawlSpeedBounds.min.x);
+        bind(ref crawlSpeed.y, crawlSpeedBounds.max.y, crawlSpeedBounds.min.y);
 
-        if (airForceFactor < 0) { airForceFactor = 0; } // airForceFactor should never be negative. See walkSpeed.x < 0
-        if (airForceFactor > 1) { airForceFactor = 1; } // airForceFactor should never be greater than 1. This gives the player more control in the air than on ground
+        bind(ref airForceFactor, airForceFactorBounds.max, airForceFactorBounds.min);
 
-        if (airTranslationFactor < 0) { airTranslationFactor = 0; } // airTranslationFactor should never be negative. See walkSpeed.x < 0
-        if (airTranslationFactor > 1) { airTranslationFactor = 1; } // airTranslationFactor should never be greater than 1. See airForceFactor > 1
+        bind(ref airTranslationFactor, airTranslationFactorBounds.max, airTranslationFactorBounds.min);
         
-        if (speedLimitWalk < 0) { speedLimitWalk = 0; } // speed limits should never be negative. They also shouldn't be 0, but without a strict minimum this cannot be implemented
-        if (speedLimitCrawl < 0) { speedLimitCrawl = 0; } // see speedLimitWalk < 0
+        bind(ref speedLimitWalk, speedLimitWalkBounds.max, speedLimitWalkBounds.min);
+        bind(ref speedLimitCrawl, speedLimitCrawlBounds.max, speedLimitCrawlBounds.min);
     }
 
 
