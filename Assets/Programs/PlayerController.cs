@@ -39,57 +39,57 @@ public class PlayerController : MonoBehaviour
     [SerializeField] public float speedLimitCrawl = 5f;
 
     // serialized field bounds
-    private Bounds<Vector2> jumpForceBoundss = new Bounds<Vector2>
+    private Bounds<Vector2> jumpForceBounds = new Bounds<Vector2>
     (
         new Vector2(0f, 0f), // upper bound of both x and y components
         new Vector2(0f, infinity) // lower bounds of both x and y components
     );
-    private Bounds<Vector2> pounceForceBoundss = new Bounds<Vector2>
+    private Bounds<Vector2> pounceForceBounds = new Bounds<Vector2>
     (
         new Vector2(0f, 0f),
         new Vector2(infinity, infinity)
     );
-    private Bounds<float> jumpBoostBoundss = new Bounds<float>
+    private Bounds<float> jumpBoostBounds = new Bounds<float>
     (
         0f, // upper bound
         infinity // lower bound
     );
-    private Bounds<float> landBoostBoundss = new Bounds<float>
+    private Bounds<float> landBoostBounds = new Bounds<float>
     (
         0f,
         infinity
     );
-    private Bounds<Vector2> speedForceBoundss = new Bounds<Vector2>
+    private Bounds<Vector2> speedForceBounds = new Bounds<Vector2>
     (
         new Vector2(0f, 0f),
         new Vector2(infinity, 0f)
     );
-    private Bounds<Vector2> walkSpeedBoundss = new Bounds<Vector2>
+    private Bounds<Vector2> walkSpeedBounds = new Bounds<Vector2>
     (
         new Vector2(0f, 0f),
         new Vector2(infinity, 0f)
     );
-    private Bounds<Vector2> crawlSpeedBoundss = new Bounds<Vector2>
+    private Bounds<Vector2> crawlSpeedBounds = new Bounds<Vector2>
     (
         new Vector2(0f, 0f),
         new Vector2(infinity, 0f)
     );
-    private Bounds<float> airForceFactorBoundss = new Bounds<float>
+    private Bounds<float> airForceFactorBounds = new Bounds<float>
     (
         0f,
         1f
     );
-    private Bounds<float> airTranslationFactorBoundss = new Bounds<float>
+    private Bounds<float> airTranslationFactorBounds = new Bounds<float>
     (
         0f,
         1f
     );
-    private Bounds<float> speedLimitWalkBoundss = new Bounds<float>
+    private Bounds<float> speedLimitWalkBounds = new Bounds<float>
     (
         0f,
         infinity
     );
-    private Bounds<float> speedLimitCrawlBoundss = new Bounds<float>
+    private Bounds<float> speedLimitCrawlBounds = new Bounds<float>
     (
         0f,
         infinity
@@ -705,7 +705,7 @@ public class PlayerController : MonoBehaviour
     /// <typeparam name="T">The type of parameters to be inputted</typeparam>
     /// <remarks>
     /// This class is configured to use different input types so that it can contain upper and lower bounds of type float, Vector2, and others
-    /// Boundss associated with Vector2 variables, such as jumpForceBoundss, are a Bounds of type Vector2 so that it may contain the jumpForce bounds for both x and y components
+    /// Bounds associated with Vector2 variables, such as jumpForceBounds, are a Bounds of type Vector2 so that it may contain the jumpForce bounds for both x and y components
     /// </remarks>
     public class Bounds<T>
     {
