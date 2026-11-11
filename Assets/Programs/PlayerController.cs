@@ -23,6 +23,8 @@ public class PlayerController : MonoBehaviour
     private const float jumpCooldown = 0.4f; // amount of time in seconds after jumping that a player can jump again
     private const float limitNullifierLength = 0.5f; // amount of time in seconds that limitSpeedX() is ignored after a pounce
 
+    private const float infinity = 1048576f; // an arbitrarily large number (equal to 2^20) representing an absence of an upper bound (used in serialized field bounds)
+
     // serialized variables (can be modified in the editor)
     [SerializeField] public Vector2 jumpForce = new Vector2(0f, 18f); // the amount of force to be applied to the player when they jump
     [SerializeField] public Vector2 pounceForce = new Vector2(20f, 10f); // the amount of force to be applied to the player after a fully charged pounce
@@ -35,6 +37,63 @@ public class PlayerController : MonoBehaviour
     [SerializeField] public float airTranslationFactor = 0.8f; // how much to multiply the crawlSpeed by when in air
     [SerializeField] public float speedLimitWalk = 7f; // how far the player can move in a second when walking
     [SerializeField] public float speedLimitCrawl = 5f;
+
+    // serialized field bounds
+    private Bounds<Vector2> jumpForceBoundss = new Bounds<Vector2>
+    (
+        new Vector2(0f, 0f), // upper bound of both x and y components
+        new Vector2(0f, infinity) // lower bounds of both x and y components
+    );
+    private Bounds<Vector2> pounceForceBoundss = new Bounds<Vector2>
+    (
+        new Vector2(0f, 0f),
+        new Vector2(infinity, infinity)
+    );
+    private Bounds<float> jumpBoostBoundss = new Bounds<float>
+    (
+        0f, // upper bound
+        infinity // lower bound
+    );
+    private Bounds<float> landBoostBoundss = new Bounds<float>
+    (
+        0f,
+        infinity
+    );
+    private Bounds<Vector2> speedForceBoundss = new Bounds<Vector2>
+    (
+        new Vector2(0f, 0f),
+        new Vector2(infinity, 0f)
+    );
+    private Bounds<Vector2> walkSpeedBoundss = new Bounds<Vector2>
+    (
+        new Vector2(0f, 0f),
+        new Vector2(infinity, 0f)
+    );
+    private Bounds<Vector2> crawlSpeedBoundss = new Bounds<Vector2>
+    (
+        new Vector2(0f, 0f),
+        new Vector2(infinity, 0f)
+    );
+    private Bounds<float> airForceFactorBoundss = new Bounds<float>
+    (
+        0f,
+        1f
+    );
+    private Bounds<float> airTranslationFactorBoundss = new Bounds<float>
+    (
+        0f,
+        1f
+    );
+    private Bounds<float> speedLimitWalkBoundss = new Bounds<float>
+    (
+        0f,
+        infinity
+    );
+    private Bounds<float> speedLimitCrawlBoundss = new Bounds<float>
+    (
+        0f,
+        infinity
+    );
     
     // player states
     private Direction1D facing = Direction1D.RIGHT; // determines which way the player is facing
@@ -352,26 +411,8 @@ public class PlayerController : MonoBehaviour
         return a;
     }
 
-
-
-
-
-    // ----- ##### ----- ##### ------ ##### -----
-
-    /// <summary>
-    /// Sets component variables (i.e. rigidbody, renderer, etc.) as well as difference variables (i.e. lastPos).
-    /// </summary>
-    void Start()
+    void bindFields()
     {
-        // define component variables
-        rb = GetComponent<Rigidbody2D>();
-        collider = GetComponent<Collider2D>();
-        rend = GetComponent<Renderer>();
-
-        // set initial relative values
-        lastPos = transform.position;
-
-        // ensure serialized fields are in reasonable bounds
         if (jumpForce.x != 0) { jumpForce.x = 0; } // jumpForce.x should always be 0
         if (jumpForce.y < 0) { jumpForce.y = 0; } // jumpForce.y should never be negative
 
@@ -399,6 +440,29 @@ public class PlayerController : MonoBehaviour
         
         if (speedLimitWalk < 0) { speedLimitWalk = 0; } // speed limits should never be negative. They also shouldn't be 0, but without a strict minimum this cannot be implemented
         if (speedLimitCrawl < 0) { speedLimitCrawl = 0; } // see speedLimitWalk < 0
+    }
+
+
+
+
+
+    // ----- ##### ----- ##### ------ ##### -----
+
+    /// <summary>
+    /// Sets component variables (i.e. rigidbody, renderer, etc.) as well as difference variables (i.e. lastPos).
+    /// </summary>
+    void Start()
+    {
+        // define component variables
+        rb = GetComponent<Rigidbody2D>();
+        collider = GetComponent<Collider2D>();
+        rend = GetComponent<Renderer>();
+
+        // set initial relative values
+        lastPos = transform.position;
+
+        // ensure serialized fields are in reasonable bounds
+        bindFields();
     }
 
     /// <summary>
@@ -633,6 +697,25 @@ public class PlayerController : MonoBehaviour
         public static int enemy = LayerMask.GetMask("Enemy");
         public static int npc = LayerMask.GetMask("NPC");
         public static int collectible = LayerMask.GetMask("Collectible");
+    }
+
+    /// <summary>
+    /// Contains the minimum and maximum values for a particular serialized field.
+    /// </summary>
+    /// <typeparam name="T">The type of parameters to be inputted</typeparam>
+    /// <remarks>
+    /// This class is configured to use different input types so that it can contain upper and lower bounds of type float, Vector2, and others
+    /// Boundss associated with Vector2 variables, such as jumpForceBoundss, are a Bounds of type Vector2 so that it may contain the jumpForce bounds for both x and y components
+    /// </remarks>
+    public class Bounds<T>
+    {
+        public T min;
+        public T max;
+
+        public Bounds(T min, T max) {
+            this.min = min;
+            this.max = max;
+        }
     }
     
 }
