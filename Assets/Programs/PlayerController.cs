@@ -34,10 +34,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] public float airForceFactor = 0.2f; // how much to multiply the speedForce by when in air
     [SerializeField] public float airTranslationFactor = 0.8f; // how much to multiply the crawlSpeed by when in air
     [SerializeField] public float speedLimitWalk = 7f; // how far the player can move in a second when walking
+    [SerializeField] public float speedLimitCrawl = 5f;
     
     // player states
     private Direction1D facing = Direction1D.RIGHT; // determines which way the player is facing
     private Direction1D facingStrict = Direction1D.RIGHT; // a parallel to the facing variable which is only altered when the player is on the ground
+    private Movement mov = new Movement(); // a class object containing the player's movement states
     private bool isOnGround = false;
     private Vector2 velocityVector; // the physics-based (i.e. from applied forces) velocity of the player
 
@@ -45,11 +47,12 @@ public class PlayerController : MonoBehaviour
     private bool jumpRequest = false;
     private bool moveRequest = false;
 
-    // miscellaneous
-    private Movement mov = new Movement();
+    // tickers and counters
     private float pounceTicker = 0f; // amount of time in seconds that a pounce has been charged
     private float jumpTicker = jumpCooldown; // amount of time in seconds after the last jump
     private float limitNullifier = limitNullifierLength; // amount of time after a pounce. Used to nullify the limitSpeedX() method and enable longer pounces
+
+    // relative values
     private Vector3 lastPos;
     private Vector3 currentPos;
 
@@ -222,9 +225,9 @@ public class PlayerController : MonoBehaviour
     /// Uses walkSpeed.x in place of speed
     /// Uses speedLimitWalk in place of limit
     /// </remarks>
-    void limitSpeedX()
+    void limitSpeedX(float limit)
     {
-        limitSpeedX(rb.linearVelocity.x, walkSpeed.x, speedLimitWalk);
+        limitSpeedX(rb.linearVelocity.x, walkSpeed.x, limit);
         // if ((Math.Abs(rb.linearVelocity.x + ((int)facingStrict) * walkSpeed.x) > speedLimitWalk) && (limitNullifier > limitNullifierLength))
         // {
         //     rb.linearVelocity = new Vector2((int)facingStrict * (speedLimitWalk - walkSpeed.x), rb.linearVelocity.y);
@@ -447,7 +450,16 @@ public class PlayerController : MonoBehaviour
         }
         
         // apply speed limit
-        limitSpeedX();
+        if (!mov.crouch && !mov.sprint)
+        {
+            limitSpeedX(speedLimitWalk);
+        } else if (mov.crouch)
+        {
+            limitSpeedX(speedLimitCrawl);
+        } else
+        {
+            
+        }
 
 
         // debug
@@ -539,6 +551,29 @@ public class PlayerController : MonoBehaviour
         public bool crouch;
         public bool sprint;
 
+        /// <summary>
+        /// Specific constructor for Movement objects
+        /// </summary>
+        /// <param name="left">Boolean representing whether or not a "left" key is pressed</param>
+        /// <param name="right">Boolean representing whether or not a "right" key is pressed</param>
+        /// <param name="jump">Boolean representing whether or not a "jump" key is pressed</param>
+        /// <param name="crouch">Boolean representing whether or not a "crouch" key is pressed</param>
+        /// <param name="sprint">Boolean representing whether or not the player is sprinting</param>
+        public Movement(bool left, bool right, bool jump, bool crouch, bool sprint)
+        {
+            this.left = left;
+            this.right = right;
+            this.jump = jump;
+            this.crouch = crouch;
+            this.sprint = sprint;
+        }
+        
+        /// <summary>
+        /// Generic constructor
+        /// </summary>
+        /// <remarks>
+        /// This assumes that all attributes are to be false
+        /// </remmakrs>
         public Movement()
         {
             this.left = false;
