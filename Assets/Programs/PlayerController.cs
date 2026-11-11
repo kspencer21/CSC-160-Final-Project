@@ -104,6 +104,7 @@ public class PlayerController : MonoBehaviour
     private Direction1D facingStrict = Direction1D.RIGHT; // a parallel to the facing variable which is only altered when the player is on the ground
     private Movement mov = new Movement(); // a class object containing the player's movement states
     private bool isOnGround = false;
+    private bool isClimbing = false;
     private Vector2 velocityVector; // the physics-based (i.e. from applied forces) velocity of the player
 
     // Update() and FixedUpdate() interactions
@@ -418,7 +419,7 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Applies upper and lower bounds to a variable
+    /// Applies upper and lower bounds to a variable.
     /// </summary>
     /// <param name="value">The variable to be affected</param>
     /// <param name="upper">The upper bound of the value</param>
@@ -433,7 +434,7 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Apply upper and lower bounds to all serialized fields
+    /// Apply upper and lower bounds to all serialized fields.
     /// </summary>
     void bindFields()
     {
@@ -462,6 +463,59 @@ public class PlayerController : MonoBehaviour
         
         bind(ref speedLimitWalk, speedLimitWalkBounds.max, speedLimitWalkBounds.min);
         bind(ref speedLimitCrawl, speedLimitWalk, speedLimitCrawlBounds.min); // the upper bound is speedLimitWalk because the speed limit for crawling should never exceed the speed limit for walking, i.e. the player should be slower when crawling
+    }
+
+    /// <summary>
+    /// Checks if the player is colliding with ground.
+    /// </summary>
+    /// <param name="normal">The normal vector of the player's collision</param>
+    /// <returns>A boolean representative of whether or not the player should be considered to be standing on ground</returns>
+    /// <remarks>
+    /// <format type="text/markdown">
+    /// The collider does not check the layer mask on each iteration of the foreach loop (see OnCollisionEnter() and OnCollisionStay())
+    /// Because of this, edge cases may arise where this method returns true when it shouldn't, if:
+    /// - The player is colliding with any object with layer mask Mask.ground ("Ground"), and
+    /// - The player is colliding with an object with a collider of any layer mask such that its normal vector is (0, 1)
+    /// </format>
+    /// </remarks>
+    bool isCollidingGround(Vector2 normal)
+    {
+        if (normal == new Vector2(0, 1) && collider.IsTouchingLayers(Mask.ground))
+        {
+            return true;
+        } else
+        {
+            return false;
+        }
+    }
+    
+    /// <summary>
+    /// Checks if the player is colliding with a climbable object.
+    /// </summary>
+    /// <param name="normal">The normal vector of the player's collision</param>
+    /// <param name="collision">The object containing all details of the collision</param>
+    /// <returns>A boolean representative of whether or not the player should be considered to be standing on ground</returns>
+    /// <remarks>
+    /// <format type="text/markdown">
+    /// The collider does not check the layer mask on each iteration of the foreach loop (see OnCollisionEnter() and OnCollisionStay())
+    /// Because of this, edge cases may arise where this method returns true when it shouldn't, if:
+    /// - The player is colliding with any object with layer mask Mask.ground ("Ground"),
+    /// - The player is colliding with an object with a collider of any layer mask such that its normal vector is (1, 0) or (-1, 0), and
+    /// - The player is colliding with an object with a collider of any layer mask that has the tag "Climbable"
+    /// </format>
+    /// </remarks>
+    bool isCollidingClimbable(Vector2 normal, Collision2D collision)
+    {
+        if (
+            (normal == new Vector2(1, 0) || normal == new Vector2(-1, 0)) && 
+            collider.IsTouchingLayers(Mask.ground) && 
+            collision.gameObject.CompareTag("Climbable"))
+        {
+            return true;
+        } else
+        {
+            return false;
+        }
     }
 
 
@@ -591,7 +645,8 @@ public class PlayerController : MonoBehaviour
     {
         foreach (ContactPoint2D i in collision.contacts)
         {
-            if (i.normal == new Vector2(0, 1) && collider.IsTouchingLayers(Mask.ground))
+            // test if the player is on the ground
+            if (isCollidingGround(i.normal) && !isOnGround)
             {
                 // the player is on the ground
                 isOnGround = true;
@@ -601,6 +656,14 @@ public class PlayerController : MonoBehaviour
                 {
                     addLandForce();
                 }
+            }
+
+            if (isCollidingClimbable(i.normal, collision) && !isClimbing)
+            {
+                // the player is climbing
+                isClimbing = true;
+
+                print("Climbing!");
             }
         }
     }
@@ -615,9 +678,20 @@ public class PlayerController : MonoBehaviour
             foreach (ContactPoint2D i in collision.contacts) // check every object that the player is in contact with
             {
                 // the player is on the ground if any of the colliding objects is a ground object that is directly beneath the player
-                if (i.normal == new Vector2(0, 1) && collider.IsTouchingLayers(Mask.ground))
+                if (isCollidingGround(i.normal))
                 {
                     isOnGround = true;
+                }
+            }
+        }
+
+        if (!isClimbing)
+        {
+            foreach(ContactPoint2D i in collision.contacts)
+            {
+                if (isCollidingClimbable(i.normal, collision))
+                {
+                    isClimbing = true;
                 }
             }
         }
