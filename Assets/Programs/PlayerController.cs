@@ -424,7 +424,7 @@ public class PlayerController : MonoBehaviour
     /// <param name="upper">The upper bound of the value</param>
     /// <param name="lower">The lower bound of the value</param>
     /// <remarks>
-    /// The value argument is a reference argument so that the variable put in can be altered from within the method
+    /// The value parameter is a reference parameter so that the variable put in can be altered from within the method
     /// </remarks>
     void bind(ref float value, float upper, float lower)
     {
@@ -440,8 +440,8 @@ public class PlayerController : MonoBehaviour
         bind(ref jumpForce.x, jumpForceBounds.max.x, jumpForceBounds.min.x);
         bind(ref jumpForce.y, jumpForceBounds.max.y, jumpForceBounds.min.y);
 
-        bind(ref pounceForce.x, pounceForceBounds.max.x, pounceForceBounds.min.x);
-        bind(ref pounceForce.y, pounceForceBounds.max.y, pounceForceBounds.min.y);
+        bind(ref pounceForce.x, pounceForceBounds.max.x, jumpForce.x); // the lower bound is jumpForce.x because the pounceForce x component should always be greater than the jumpForce x component, i.e. the player should jump farther with a pounce
+        bind(ref pounceForce.y, jumpForce.y, pounceForceBounds.min.y); // the upper bound is jumpForce.y because the pounceForce y component should never exceedd the jumpForce y component, i.e. the player should not jump higher with a pounce
 
         bind(ref movingJumpBoost, jumpBoostBounds.max, jumpBoostBounds.min);
 
@@ -453,7 +453,7 @@ public class PlayerController : MonoBehaviour
         bind(ref walkSpeed.x, walkSpeedBounds.max.x, walkSpeedBounds.min.x);
         bind(ref walkSpeed.y, walkSpeedBounds.max.y, walkSpeedBounds.min.y);
 
-        bind(ref crawlSpeed.x, crawlSpeedBounds.max.x, crawlSpeedBounds.min.x);
+        bind(ref crawlSpeed.x, walkSpeed.x, crawlSpeedBounds.min.x); // the upper bound is walkSpeed.x because the crawlSpeed x component should never exceed the walkSpeed x component, i.e. the player should be slower when crawling
         bind(ref crawlSpeed.y, crawlSpeedBounds.max.y, crawlSpeedBounds.min.y);
 
         bind(ref airForceFactor, airForceFactorBounds.max, airForceFactorBounds.min);
@@ -461,7 +461,7 @@ public class PlayerController : MonoBehaviour
         bind(ref airTranslationFactor, airTranslationFactorBounds.max, airTranslationFactorBounds.min);
         
         bind(ref speedLimitWalk, speedLimitWalkBounds.max, speedLimitWalkBounds.min);
-        bind(ref speedLimitCrawl, speedLimitCrawlBounds.max, speedLimitCrawlBounds.min);
+        bind(ref speedLimitCrawl, speedLimitWalk, speedLimitCrawlBounds.min); // the upper bound is speedLimitWalk because the speed limit for crawling should never exceed the speed limit for walking, i.e. the player should be slower when crawling
     }
 
 
