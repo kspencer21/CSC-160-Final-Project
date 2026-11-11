@@ -363,13 +363,42 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void Start()
     {
+        // define component variables
         rb = GetComponent<Rigidbody2D>();
         collider = GetComponent<Collider2D>();
         rend = GetComponent<Renderer>();
 
-        // groundLayer = LayerMask.GetMask("Ground");
-
+        // set initial relative values
         lastPos = transform.position;
+
+        // ensure serialized fields are in reasonable bounds
+        if (jumpForce.x != 0) { jumpForce.x = 0; } // jumpForce.x should always be 0
+        if (jumpForce.y < 0) { jumpForce.y = 0; } // jumpForce.y should never be negative
+
+        if (pounceForce.x < 0) { pounceForce.x = 0; } // pounceForce.x should never be negative
+        if (pounceForce.y < 0) { pounceForce.y = 0; } // pounceForce.y should never be negative
+
+        if (movingJumpBoost < 0) { movingJumpBoost = 0; } // movingJumpBoost should never be negative
+
+        if (landBoost < 0) { landBoost = 0; } // landBoost should never be negative
+
+        if (speedForce.x < 0) { speedForce.x = 0; } // speedForce.x should never be negative
+        if (speedForce.y != 0) { speedForce.y = 0; } // speedForce.y should always be 0. This may change depending on how slopes are implemented
+
+        if (walkSpeed.x < 0) { walkSpeed.x = 0; } // walkSpeed.x should never be negative. The only implication of this is reversed controls
+        if (walkSpeed.y != 0) { walkSpeed.y = 0; } // walkSpeed.y should always be 0. See speedForce.y != 0
+
+        if (crawlSpeed.x < 0) { crawlSpeed.x = 0; } // crawlSpeed.x should never be negative. See walkSpeed.x < 0
+        if (crawlSpeed.y != 0) { crawlSpeed.y = 0; } // crawlSpeed.y should always be 0. See speedForce.y != 0
+
+        if (airForceFactor < 0) { airForceFactor = 0; } // airForceFactor should never be negative. See walkSpeed.x < 0
+        if (airForceFactor > 1) { airForceFactor = 1; } // airForceFactor should never be greater than 1. This gives the player more control in the air than on ground
+
+        if (airTranslationFactor < 0) { airTranslationFactor = 0; } // airTranslationFactor should never be negative. See walkSpeed.x < 0
+        if (airTranslationFactor > 1) { airTranslationFactor = 1; } // airTranslationFactor should never be greater than 1. See airForceFactor > 1
+        
+        if (speedLimitWalk < 0) { speedLimitWalk = 0; } // speed limits should never be negative. They also shouldn't be 0, but without a strict minimum this cannot be implemented
+        if (speedLimitCrawl < 0) { speedLimitCrawl = 0; } // see speedLimitWalk < 0
     }
 
     /// <summary>
