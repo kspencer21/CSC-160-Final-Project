@@ -102,6 +102,7 @@ public class PlayerController : MonoBehaviour
     // player states
     private Direction1D facing = Direction1D.RIGHT; // determines which way the player is facing
     private Direction1D facingStrict = Direction1D.RIGHT; // a parallel to the facing variable which is only altered when the player is on the ground
+    private Direction1D climbingFacing = Direction1D.NULL; // the direction the player is facing while climbing. NULL if the player is not climbing
     private Movement mov = new Movement(); // a class object containing the player's movement states
     private bool isOnGround = false;
     private bool isClimbing = false;
@@ -417,6 +418,17 @@ public class PlayerController : MonoBehaviour
         }
         return a;
     }
+    
+    /// <summary>
+    /// Begin climbing.
+    /// </summary>
+    void startClimb()
+    {
+        climbingFacing = facingStrict;
+        transform.rotation = Quaternion.Euler(0, 0, 90 * (int)climbingFacing);
+        transform.Translate(Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, 0, Space.World);
+        rb.gravityScale = 0f;
+    }
 
     /// <summary>
     /// Applies upper and lower bounds to a variable.
@@ -583,8 +595,7 @@ public class PlayerController : MonoBehaviour
 
 
         // debug
-        // print(facing);
-        // print(facingStrict);
+
 
         // prepare for next tick
         currentVelocity.x = 0;
@@ -629,7 +640,7 @@ public class PlayerController : MonoBehaviour
             limitSpeedX(speedLimitCrawl);
         } else
         {
-            
+            // apply sprint speed limit, if sprint is implemented
         }
 
 
@@ -662,6 +673,7 @@ public class PlayerController : MonoBehaviour
             {
                 // the player is climbing
                 isClimbing = true;
+                startClimb();
 
                 print("Climbing!");
             }
@@ -692,6 +704,7 @@ public class PlayerController : MonoBehaviour
                 if (isCollidingClimbable(i.normal, collision))
                 {
                     isClimbing = true;
+                    startClimb();
                 }
             }
         }
@@ -710,7 +723,9 @@ public class PlayerController : MonoBehaviour
 
 
 
-    // ----- ##### ----- ##### ----- ##### -----
+    // ===========================================================================================================================================
+    // ========== EUNUMERATORS ===================================================================================================================
+    // ===========================================================================================================================================
 
     /// <summary>
     /// Enumerator with two values describing left, right, or neutral
