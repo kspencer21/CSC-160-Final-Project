@@ -31,7 +31,7 @@ public class PlayerController : MonoBehaviour
 
     // serialized variables (can be modified in the editor)
     [SerializeField] public Vector2 jumpForce = new Vector2(0f, 18f); // the amount of force to be applied to the player when they jump
-    [SerializeField] public Vector2 pounceForce = new Vector2(20f, 10f); // the amount of force to be applied to the player after a fully charged pounce
+    [SerializeField] public Vector2 pounceForce = new Vector2(18f, 10f); // the amount of force to be applied to the player after a fully charged pounce
     [SerializeField] public float movingJumpBoost = 5f; // additional force to be applied only when the player is moving when they jump. Modified by the player's velocityVector
     [SerializeField] public float landBoost = 1.5f; // additional force to be applied when the player lands to account for the sudden friction
     [SerializeField] public Vector2 speedForce = new Vector2(20f, 0f); // speedForce determines how much the translational movement is affected by acceleration (via forces)
@@ -40,7 +40,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] public float airForceFactor = 0.2f; // how much to multiply the speedForce by when in air
     [SerializeField] public float airTranslationFactor = 0.8f; // how much to multiply the crawlSpeed by when in air
     [SerializeField] public float speedLimitWalk = 7f; // how far the player can move in a second when walking
-    [SerializeField] public float speedLimitCrawl = 5f;
+    [SerializeField] public float speedLimitCrawl = 3f;
 
     // serialized field bounds
     private Bounds<Vector2> jumpForceBounds = new Bounds<Vector2>
