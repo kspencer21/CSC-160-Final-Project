@@ -24,6 +24,7 @@ public class PlayerController : MonoBehaviour
     private const float maxHold = 0.6f; // number of seconds that the player must hold crouch before pouncing for currentJumpForce = pounceForce
     private const float minHold = 0.1f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to average of jumpForce and pounceForce
     private const float climbTime = 3f; // amount of time in seconds that a player can climb
+    private const float climbCooldown = 0.1f; // amount of time in seconds after stopping climbing that the player can climb again
     private const float jumpCooldown = 0.4f; // amount of time in seconds after jumping that a player can jump again
     private const float limitNullifierLength = 0.5f; // amount of time in seconds that limitSpeedX() is ignored after a pounce
 
@@ -113,6 +114,7 @@ public class PlayerController : MonoBehaviour
     private bool isOnGround = false;
     private bool isClimbing = false;
     private Vector2 velocityVector; // the physics-based (i.e. from applied forces) velocity of the player
+    private float gravity;
 
     // Update() and FixedUpdate() interactions
     private bool jumpRequest = false;
@@ -122,6 +124,8 @@ public class PlayerController : MonoBehaviour
     private float pounceTicker = 0f; // amount of time in seconds that a pounce has been charged
     private float jumpTicker = jumpCooldown; // amount of time in seconds after the last jump
     private float limitNullifier = limitNullifierLength; // amount of time after a pounce. Used to nullify the limitSpeedX() method and enable longer pounces
+    private float climbTicker = 0f;
+    private float climbWaitTicker = 0f;
 
     // relative values
     private Vector3 lastPos;
@@ -446,10 +450,12 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void startClimb()
     {
+        climbTicker = 0f;
         climbingFacing = facingStrict;
         transform.rotation = Quaternion.Euler(0, 0, 90 * (int)climbingFacing);
         transform.Translate(Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, 0, Space.World);
         rb.gravityScale = 0f;
+        rb.linearVelocity = new Vector2(0, 0); // neutralize any ridigbody-based velocity
         isOnGround = false; // the player should not be able to jump or move as though they were on the ground
     }
 
@@ -463,6 +469,27 @@ public class PlayerController : MonoBehaviour
         {
             transform.Translate(new Vector3(speed.x, (int)facing * speed.y * Time.deltaTime, 0), Space.World);
         }
+    }
+
+    /// <summary>
+    /// Stop climbing.
+    /// </summary>
+    void endClimb()
+    {
+        climbWaitTicker = 0f;
+        transform.rotation = Quaternion.Euler(0, 0, 0);
+        transform.Translate((int)climbingFacing * ((Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2) - 0.1f), Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2, 0, Space.World);
+        climbingFacing = Direction1D.NULL;
+        rb.gravityScale = gravity;
+        isClimbing = false;
+    }
+
+    /// <summary>
+    /// Jump off of a climbable wall.
+    /// </summary>
+    void wallJump()
+    {
+        
     }
 
     /// <summary>
@@ -589,6 +616,8 @@ public class PlayerController : MonoBehaviour
         // set initial relative values
         lastPos = transform.position;
 
+        gravity = rb.gravityScale;
+
         // ensure serialized fields are in reasonable bounds
         bindFields();
     }
@@ -612,6 +641,8 @@ public class PlayerController : MonoBehaviour
         // update tikers
         jumpTicker += Time.deltaTime;
         limitNullifier += Time.deltaTime;
+        climbTicker += Time.deltaTime;
+        climbWaitTicker += Time.deltaTime;
 
         // determine which way the player is facing
         updateFacing();
@@ -631,6 +662,16 @@ public class PlayerController : MonoBehaviour
             moveTranslate(currentVelocity);
             climb(currentVelocity);
         }
+        if (isClimbing && climbWaitTicker > climbCooldown)
+        {
+            if (mov.crouch || climbTicker > climbTime)
+            {
+                endClimb();
+            } else if (mov.jump)
+            {
+                wallJump();
+            }
+        }
 
 
         // debug
@@ -648,12 +689,12 @@ public class PlayerController : MonoBehaviour
     /// <remarks>
     /// Runs once per physics frame, i.e. 50 times a second.
     /// Makes the player jump if a jump has been requested by Update().
-    /// Applies the force-based left/right movement if requested by Update().
+    /// Applies the rigidbody-based left/right movement if requested by Update().
     /// </remarks>
     void FixedUpdate()
     {
         // update velocityVector
-        velocityVector = rb.linearVelocity; // this does not account for non-force-based movement
+        velocityVector = rb.linearVelocity; // this does not account for non-rigidbody-based movement
 
         // jump if a jump has been requested
         if (jumpRequest)
