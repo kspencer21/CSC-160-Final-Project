@@ -82,7 +82,7 @@ public class PlayerController : MonoBehaviour
     private Bounds<Vector2> climbSpeedBounds = new Bounds<Vector2>
     (
         new Vector2(0f, 0f),
-        new Vector2(0f, infinity);
+        new Vector2(0f, infinity)
     );
     private Bounds<float> airForceFactorBounds = new Bounds<float>
     (
@@ -234,18 +234,28 @@ public class PlayerController : MonoBehaviour
     /// </remarks>
     void setVelocity()
     {
-        if (isOnGround)
+        if (!isClimbing)
         {
-            if (mov.crouch)
+            if (isOnGround)
             {
-                currentVelocity.x = crawlSpeed.x;
+                if (mov.crouch)
+                {
+                    currentVelocity.x = crawlSpeed.x;
+                    currentVelocity.y = crawlSpeed.y;
+                } else
+                {
+                    currentVelocity.x = walkSpeed.x;
+                    currentVelocity.y = walkSpeed.y;
+                }
             } else
             {
-                currentVelocity.x = walkSpeed.x;
+                currentVelocity.x = walkSpeed.x * airTranslationFactor;
+                currentVelocity.y = walkSpeed.y * airTranslationFactor;
             }
         } else
         {
-            currentVelocity.x = crawlSpeed.x * airTranslationFactor;
+            currentVelocity.x = climbSpeed.x;
+            currentVelocity.y = climbSpeed.y;
         }
     }
 
@@ -269,7 +279,7 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// Move the player based on their current speed.
     /// </summary>
-    /// <param name="speed"></param>
+    /// <param name="speed">The translational speed to be applied</param>
     void moveTranslate(Vector2 speed)
     {
         if (!isClimbing) 
@@ -444,6 +454,18 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
+    /// Make the player climb.
+    /// </summary>
+    /// <param name="speed">The speed at which the player climbs</param>
+    void climb(Vector2 speed)
+    {
+        if (isClimbing)
+        {
+            transform.Translate(new Vector3(speed.x, (int)facing * speed.y * Time.deltaTime, 0), Space.World);
+        }
+    }
+
+    /// <summary>
     /// Applies upper and lower bounds to a variable.
     /// </summary>
     /// <param name="value">The variable to be affected</param>
@@ -607,6 +629,7 @@ public class PlayerController : MonoBehaviour
         {
             moveRequest = true;
             moveTranslate(currentVelocity);
+            climb(currentVelocity);
         }
 
 
