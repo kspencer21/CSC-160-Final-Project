@@ -37,6 +37,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] public Vector2 speedForce = new Vector2(20f, 0f); // speedForce determines how much the translational movement is affected by acceleration (via forces)
     [SerializeField] public Vector2 walkSpeed = new Vector2(2f, 0f); // walkSpeed determines how much the translational movement is immediate (direct translation)
     [SerializeField] public Vector2 crawlSpeed = new Vector2(1f, 0f); // crawlSpeed is an alternative to walkSpeed used when the player is crouched
+    [SerializeField] public Vector2 climbSpeed = new Vector2(0f, 5f);
     [SerializeField] public float airForceFactor = 0.2f; // how much to multiply the speedForce by when in air
     [SerializeField] public float airTranslationFactor = 0.8f; // how much to multiply the crawlSpeed by when in air
     [SerializeField] public float speedLimitWalk = 7f; // how far the player can move in a second when walking
@@ -77,6 +78,11 @@ public class PlayerController : MonoBehaviour
     (
         new Vector2(0f, 0f),
         new Vector2(infinity, 0f)
+    );
+    private Bounds<Vector2> climbSpeedBounds = new Bounds<Vector2>
+    (
+        new Vector2(0f, 0f),
+        new Vector2(0f, infinity);
     );
     private Bounds<float> airForceFactorBounds = new Bounds<float>
     (
@@ -249,12 +255,15 @@ public class PlayerController : MonoBehaviour
     /// <param name="force">The "force" speed to be applied</param>
     void moveForce(Vector2 force)
     {
-        // apply air control factor if in air
-        float f = 1;
-        if (!isOnGround) { f = airForceFactor; }
+        if (!isClimbing)
+        {
+            // apply air control factor if in air
+            float f = 1;
+            if (!isOnGround) { f = airForceFactor; }
 
-        // apply force
-        rb.AddForce(new Vector3((int)facing * force.x * f, force.y, 0), ForceMode2D.Force);
+            // apply force
+            rb.AddForce(new Vector3((int)facing * force.x * f, force.y, 0), ForceMode2D.Force);
+        }
     }
 
     /// <summary>
@@ -263,8 +272,11 @@ public class PlayerController : MonoBehaviour
     /// <param name="speed"></param>
     void moveTranslate(Vector2 speed)
     {
-        // apply immediate translation
-        transform.Translate(new Vector3((int)facing * speed.x * Time.deltaTime, speed.y * Time.deltaTime, 0));
+        if (!isClimbing) 
+        {
+            // apply immediate translation
+            transform.Translate(new Vector3((int)facing * speed.x * Time.deltaTime, speed.y * Time.deltaTime, 0));
+        }
     }
 
     /// <summary>
@@ -428,6 +440,7 @@ public class PlayerController : MonoBehaviour
         transform.rotation = Quaternion.Euler(0, 0, 90 * (int)climbingFacing);
         transform.Translate(Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, 0, Space.World);
         rb.gravityScale = 0f;
+        isOnGround = false; // the player should not be able to jump or move as though they were on the ground
     }
 
     /// <summary>
@@ -468,6 +481,9 @@ public class PlayerController : MonoBehaviour
 
         bind(ref crawlSpeed.x, walkSpeed.x, crawlSpeedBounds.min.x); // the upper bound is walkSpeed.x because the crawlSpeed x component should never exceed the walkSpeed x component, i.e. the player should be slower when crawling
         bind(ref crawlSpeed.y, crawlSpeedBounds.max.y, crawlSpeedBounds.min.y);
+
+        bind(ref climbSpeed.x, climbSpeedBounds.max.x, climbSpeedBounds.min.x);
+        bind(ref climbSpeed.y, climbSpeedBounds.max.y, climbSpeedBounds.min.y);
 
         bind(ref airForceFactor, airForceFactorBounds.max, airForceFactorBounds.min);
 
