@@ -44,6 +44,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] public float speedLimitWalk = 7f; // how far the player can move in a second when walking
     [SerializeField] public float speedLimitCrawl = 3f;
 
+    [SerializeField] public Animator animator;
+
     // serialized field bounds
     private Bounds<Vector2> jumpForceBounds = new Bounds<Vector2>
     (
@@ -183,18 +185,22 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
         {
             mov.left = true;
+            animator.SetBool("isWalking", true);
         } else 
         {
             mov.left = false;
+            animator.SetBool("isWalking", false);
         }
         
         // listen for right-movement-related keys down
         if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
         {
             mov.right = true;
+            animator.SetBool("isWalking", true);
         } else 
         {
             mov.right = false;
+            animator.SetBool("isWalking", false);
         }
     }
 
