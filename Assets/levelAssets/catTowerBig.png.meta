@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 2f60f0f47eb9859489c395018e5aa9d7
+guid: 9c634f972d2a04745a52999955594b4a
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 529944546590318106
-    second: catLightSmall_0
+      213: 3615740667250252300
+    second: catTowerBig_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: catLightSmall_0
+      name: catTowerBig_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 117
-        height: 120
+        width: 1193
+        height: 1064
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a1edb22e1cdba5700800000000000000
-      internalID: 529944546590318106
+      spriteID: c0a9267daf0bd2230800000000000000
+      internalID: 3615740667250252300
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      catLightSmall_0: 529944546590318106
+      catTowerBig_0: 3615740667250252300
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

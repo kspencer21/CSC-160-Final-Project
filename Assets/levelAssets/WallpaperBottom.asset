@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: catScratchSmaller_0
+  m_Name: WallpaperBottom
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.Tilemaps.Tile
-  m_Sprite: {fileID: 4856370280065191233, guid: 227c719c582ceb24cbf5db2b1d25fce3, type: 3}
+  m_Sprite: {fileID: -2722607637710324428, guid: 15a157bdbbeb2ba48873603dcca3b0c1, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1

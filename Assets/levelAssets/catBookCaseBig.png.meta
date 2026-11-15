@@ -1,10 +1,13 @@
 fileFormatVersion: 2
-guid: 227c719c582ceb24cbf5db2b1d25fce3
+guid: 3baf2ea09ea58114fb82cc2c23f65049
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4856370280065191233
-    second: catScratchSmaller_0
+      213: 1438250931336680666
+    second: catBookCaseBig_0
+  - first:
+      213: -1147174389287698967
+    second: catBookCaseBig_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +103,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: catScratchSmaller_0
+      name: catBookCaseBig_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 80
-        height: 145
+        y: 16
+        width: 647
+        height: 985
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +118,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 14dcc012a0b456340800000000000000
-      internalID: 4856370280065191233
+      spriteID: ad492341a91b5f310800000000000000
+      internalID: 1438250931336680666
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: catBookCaseBig_1
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 0
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9edb41f88fa6410f0800000000000000
+      internalID: -1147174389287698967
       vertices: []
       indices: 
       edges: []
@@ -135,7 +160,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      catScratchSmaller_0: 4856370280065191233
+      catBookCaseBig_0: 1438250931336680666
+      catBookCaseBig_1: -1147174389287698967
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
