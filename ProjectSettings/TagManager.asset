@@ -3,20 +3,23 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
-  tags: []
+  tags:
+  - Background
+  - Ground
+  - Climbable
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Ground
   - Water
   - UI
+  - Wall
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Player
+  - Enemy
+  - NPC
+  - Collectible
   - 
   - 
   - 
@@ -44,9 +47,15 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Foreground
-    uniqueID: 2027346995
-    locked: 0
   m_RenderingLayers:
   - Default
+  - Background 1
+  - Background 2
+  - Collectibles
+  - NPCs
+  - Enemies
+  - Players
+  - Platforms
+  - Ground
+  - Foreground
   m_MigratedRenderPipelines: []
