@@ -13,18 +13,10 @@ public class PlayerController : MonoBehaviour
     private Collider2D collider;
     private Renderer rend;
 
-    // layer masks
-    private int groundLayer;
-
-    // tags
-    private int groundTag;
-    private int climbableTag;
-    
     // constants
     private const float maxHold = 0.6f; // number of seconds that the player must hold crouch before pouncing for currentJumpForce = pounceForce
     private const float minHold = 0.1f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to average of jumpForce and pounceForce
     private const float climbTime = 1.5f; // amount of time in seconds that a player can climb
-    private const float climbCooldown = 0.1f; // amount of time in seconds after stopping climbing that the player can climb again
     private const float jumpCooldown = 0.4f; // amount of time in seconds after jumping that a player can jump again
     private const float limitNullifierLength = 0.5f; // amount of time in seconds that limitSpeedX() is ignored after a pounce
 
@@ -454,8 +446,12 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void startClimb()
     {
+        isClimbing = true;
+
         climbTicker = 0f;
-        climbingFacing = facingStrict;
+        if (mov.right) { climbingFacing = Direction1D.RIGHT; }
+        else if (mov.left) { climbingFacing = Direction1D.LEFT; }
+        else { climbingFacing = facingStrict; }
 
         transform.rotation = Quaternion.Euler(0, 0, 90 * (int)climbingFacing);
         transform.Translate((int)climbingFacing * Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, 0, Space.World);
@@ -710,7 +706,9 @@ public class PlayerController : MonoBehaviour
 
 
         // debug
-        // print(canStartClimbing);
+        // print(isOnGround);
+        // print(facing);
+        // print(climbingFacing);
 
 
         // prepare for next tick
@@ -798,7 +796,6 @@ public class PlayerController : MonoBehaviour
             if (isCollidingClimbable(i.normal, collision) && !isClimbing && canStartClimbing)
             {
                 // the player is climbing
-                isClimbing = true;
                 startClimb();
             }
         }
@@ -827,13 +824,15 @@ public class PlayerController : MonoBehaviour
         {
             foreach(ContactPoint2D i in collision.contacts)
             {
-                if (isCollidingClimbable(i.normal, collision) && canStartClimbing)
+                if 
+                (
+                    isCollidingClimbable(i.normal, collision) && 
+                    canStartClimbing && 
+                    ((i.normal.x == -1 && mov.right) || 
+                    (i.normal.x == 1 && mov.left))
+                )
                 {
-                    if ((i.normal.x == -1 && mov.right) || (i.normal.x == 1 && mov.left))
-                    {
-                        isClimbing = true;
-                        startClimb();
-                    }
+                    startClimb();
                 }
             }
         }
