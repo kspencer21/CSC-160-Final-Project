@@ -44,8 +44,14 @@ TagManager:
   - name: Background
     uniqueID: 2927900115
     locked: 0
+  - name: Lower Level
+    uniqueID: 2509858197
+    locked: 0
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Upper Layer
+    uniqueID: 1280968251
     locked: 0
   - name: Player
     uniqueID: 143524957
