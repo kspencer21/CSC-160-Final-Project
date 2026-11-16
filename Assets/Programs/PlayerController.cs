@@ -453,7 +453,7 @@ public class PlayerController : MonoBehaviour
         climbTicker = 0f;
         climbingFacing = facingStrict;
         transform.rotation = Quaternion.Euler(0, 0, 90 * (int)climbingFacing);
-        transform.Translate(Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, 0, Space.World);
+        transform.Translate((int)climbingFacing * Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, 0, Space.World);
         rb.gravityScale = 0f;
         rb.linearVelocity = new Vector2(0, 0); // neutralize any ridigbody-based velocity
         isOnGround = false; // the player should not be able to jump or move as though they were on the ground
@@ -467,7 +467,7 @@ public class PlayerController : MonoBehaviour
     {
         if (isClimbing)
         {
-            transform.Translate(new Vector3(speed.x, (int)facing * speed.y * Time.deltaTime, 0), Space.World);
+            transform.Translate(new Vector3(speed.x, (int)facing * (int)climbingFacing * speed.y * Time.deltaTime, 0), Space.World);
         }
     }
 
