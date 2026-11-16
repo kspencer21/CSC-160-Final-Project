@@ -185,24 +185,50 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
         {
             mov.left = true;
-            animator.SetBool("isWalking", true);
         } else 
         {
             mov.left = false;
-            animator.SetBool("isWalking", false);
+            
         }
         
         // listen for right-movement-related keys down
         if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
         {
             mov.right = true;
-            animator.SetBool("isWalking", true);
         } else 
         {
             mov.right = false;
-            animator.SetBool("isWalking", false);
+           
         }
     }
+
+    /// <summary>
+    /// Setting animation according to movement
+    /// </summary>
+
+    void SetAnimation()
+    {
+      if(isOnGround)
+        {
+            if (!mov.left && !mov.right)
+            {
+                animator.SetBool("isWalking", false);
+            }
+            else
+            {
+                animator.SetBool("isWalking", true);
+            }
+        }
+    }
+
+    void Flip()
+    {
+        Vector3 scale= transform.localScale;
+        scale.x*=-1;
+        transform.localScale=scale;
+
+    }
+
 
     /// <summary>
     /// Update the facing variable based on the left/right movement keys that are pressed.
@@ -210,29 +236,39 @@ public class PlayerController : MonoBehaviour
     void updateFacing()
     {
         // update facing based on inputs
-        if (mov.left && !mov.right)
+        if (mov.left && !mov.right && facing != Direction1D.LEFT)
         {
             facing = Direction1D.LEFT;
-        } else if (mov.right && !mov.left)
+            Flip();
+            
+            
+        } else if (mov.right && !mov.left && facing != Direction1D.RIGHT)
         {
             facing = Direction1D.RIGHT;
+            Flip();
+            
         } else
         {
             // facing = Direction1D.NULL;
         }
 
+
         // update facingStrict based on player's velocity direction
         if (velocityVector.x > 0)
         {
             facingStrict = Direction1D.RIGHT;
+            
         } else if (velocityVector.x < 0)
         {
             facingStrict = Direction1D.LEFT;
+            
         } else
         {
             // facingStrict = Direction1D.NULL;
         }
+
     }
+
 
     /// <summary>
     /// Update player velocity based on keypresses.
@@ -701,7 +737,7 @@ public class PlayerController : MonoBehaviour
     {
         // update velocityVector
         velocityVector = rb.linearVelocity; // this does not account for non-rigidbody-based movement
-
+        
         // jump if a jump has been requested
         if (jumpRequest)
         {
@@ -728,6 +764,8 @@ public class PlayerController : MonoBehaviour
         {
             // apply sprint speed limit, if sprint is implemented
         }
+        SetAnimation();
+
 
 
         // debug
