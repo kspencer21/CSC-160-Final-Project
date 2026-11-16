@@ -23,7 +23,7 @@ public class PlayerController : MonoBehaviour
     // constants
     private const float maxHold = 0.6f; // number of seconds that the player must hold crouch before pouncing for currentJumpForce = pounceForce
     private const float minHold = 0.1f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to average of jumpForce and pounceForce
-    private const float climbTime = 3f; // amount of time in seconds that a player can climb
+    private const float climbTime = 1.5f; // amount of time in seconds that a player can climb
     private const float climbCooldown = 0.1f; // amount of time in seconds after stopping climbing that the player can climb again
     private const float jumpCooldown = 0.4f; // amount of time in seconds after jumping that a player can jump again
     private const float limitNullifierLength = 0.5f; // amount of time in seconds that limitSpeedX() is ignored after a pounce
@@ -33,6 +33,7 @@ public class PlayerController : MonoBehaviour
     // serialized variables (can be modified in the editor)
     [SerializeField] public Vector2 jumpForce = new Vector2(0f, 18f); // the amount of force to be applied to the player when they jump
     [SerializeField] public Vector2 pounceForce = new Vector2(18f, 10f); // the amount of force to be applied to the player after a fully charged pounce
+    [SerializeField] public Vector2 wallJumpForce = new Vector2(3f, 18f); // the amount of force to be applied to the player on a wall jump
     [SerializeField] public float movingJumpBoost = 5f; // additional force to be applied only when the player is moving when they jump. Modified by the player's velocityVector
     [SerializeField] public float landBoost = 1.5f; // additional force to be applied when the player lands to account for the sudden friction
     [SerializeField] public Vector2 speedForce = new Vector2(20f, 0f); // speedForce determines how much the translational movement is affected by acceleration (via forces)
@@ -113,21 +114,23 @@ public class PlayerController : MonoBehaviour
     private Direction1D facingStrict = Direction1D.RIGHT; // a parallel to the facing variable which is only altered when the player is on the ground
     private Direction1D climbingFacing = Direction1D.NULL; // the direction the player is facing while climbing. NULL if the player is not climbing
     private Movement mov = new Movement(); // a class object containing the player's movement states
+    private Vector2 velocityVector; // the physics-based (i.e. from applied forces) velocity of the player
     private bool isOnGround = false;
     private bool isClimbing = false;
-    private Vector2 velocityVector; // the physics-based (i.e. from applied forces) velocity of the player
+    private bool doubleJumpAvailable = false;
+    private bool canStartClimbing = false;
     private float gravity;
 
     // Update() and FixedUpdate() interactions
     private bool jumpRequest = false;
     private bool moveRequest = false;
+    private bool wallJumpRequest = false;
 
     // tickers and counters
     private float pounceTicker = 0f; // amount of time in seconds that a pounce has been charged
     private float jumpTicker = jumpCooldown; // amount of time in seconds after the last jump
     private float limitNullifier = limitNullifierLength; // amount of time after a pounce. Used to nullify the limitSpeedX() method and enable longer pounces
     private float climbTicker = 0f;
-    private float climbWaitTicker = 0f;
 
     // relative values
     private Vector3 lastPos;
@@ -447,7 +450,8 @@ public class PlayerController : MonoBehaviour
         updateJumpForce(pounceTicker);
 
         // jump
-        rb.AddForce(new Vector3(((int)facingStrict * currentJumpForce.x) + ((int)facing * addMovingJumpBoost()), currentJumpForce.y, 0), ForceMode2D.Impulse);
+        // rb.AddForce(new Vector3(((int)facingStrict * currentJumpForce.x) + ((int)facing * addMovingJumpBoost()), currentJumpForce.y, 0), ForceMode2D.Impulse);
+        rb.linearVelocity = new Vector3(((int)facingStrict * currentJumpForce.x) + ((int)facing * addMovingJumpBoost()) + rb.linearVelocity.x, currentJumpForce.y, 0);
         
         // reset the pounceTicker
         pounceTicker = 0;
@@ -494,11 +498,17 @@ public class PlayerController : MonoBehaviour
     {
         climbTicker = 0f;
         climbingFacing = facingStrict;
+
         transform.rotation = Quaternion.Euler(0, 0, 90 * (int)climbingFacing);
-        transform.Translate(Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, 0, Space.World);
+        transform.Translate((int)climbingFacing * Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, 0, Space.World);
+
         rb.gravityScale = 0f;
+
         rb.linearVelocity = new Vector2(0, 0); // neutralize any ridigbody-based velocity
+
         isOnGround = false; // the player should not be able to jump or move as though they were on the ground
+        doubleJumpAvailable = false;
+        canStartClimbing = false;
     }
 
     /// <summary>
@@ -509,21 +519,31 @@ public class PlayerController : MonoBehaviour
     {
         if (isClimbing)
         {
-            transform.Translate(new Vector3(speed.x, (int)facing * speed.y * Time.deltaTime, 0), Space.World);
+            transform.Translate(new Vector3(speed.x, (int)facing * (int)climbingFacing * speed.y * Time.deltaTime, 0), Space.World);
         }
     }
 
     /// <summary>
-    /// Stop climbing.
+    /// Stop climbing by choice.
     /// </summary>
     void endClimb()
     {
-        climbWaitTicker = 0f;
         transform.rotation = Quaternion.Euler(0, 0, 0);
-        transform.Translate((int)climbingFacing * ((Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2) - 0.1f), Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2, 0, Space.World);
+        transform.Translate((int)climbingFacing * ((Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2) - 0f), Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2, 0, Space.World);
+
         climbingFacing = Direction1D.NULL;
+
         rb.gravityScale = gravity;
+
         isClimbing = false;
+    }
+
+    /// <summary>
+    /// Stop climbing due to time limit.
+    /// </summary>
+    void fall()
+    {
+        
     }
 
     /// <summary>
@@ -531,7 +551,8 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void wallJump()
     {
-        
+        rb.AddForce(new Vector3(-1 * (int)climbingFacing * wallJumpForce.x, wallJumpForce.y, 0), ForceMode2D.Impulse);
+        endClimb();
     }
 
     /// <summary>
@@ -684,16 +705,17 @@ public class PlayerController : MonoBehaviour
         jumpTicker += Time.deltaTime;
         limitNullifier += Time.deltaTime;
         climbTicker += Time.deltaTime;
-        climbWaitTicker += Time.deltaTime;
 
         // determine which way the player is facing
         updateFacing();
 
-        // jump and pounce mechanics
-        chargePounce(); 
-        if (mov.jump && isOnGround && (jumpTicker >= jumpCooldown)) 
+        // ensure that player states are what they should be
+        if (isClimbing)
         {
-            jumpRequest = true;
+            // ANY TIME the player is climbing:
+            isOnGround = false; // they should not be able to jump
+            doubleJumpAvailable = false; // they should not be able to double jump
+            canStartClimbing = false; // they should not be able to restart climbing
         }
 
         // left and right movement mechanics
@@ -704,19 +726,33 @@ public class PlayerController : MonoBehaviour
             moveTranslate(currentVelocity);
             climb(currentVelocity);
         }
-        if (isClimbing && climbWaitTicker > climbCooldown)
+
+        // jump and pounce mechanics
+        chargePounce(); 
+        if (mov.jump && isOnGround && (jumpTicker >= jumpCooldown)) 
+        {
+            jumpRequest = true;
+        } else if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) && doubleJumpAvailable)
+        {
+            jumpRequest = true;
+            doubleJumpAvailable = false;
+        }
+
+        // climb mechanics
+        if (isClimbing)
         {
             if (mov.crouch || climbTicker > climbTime)
             {
                 endClimb();
-            } else if (mov.jump)
+            } else if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
             {
-                wallJump();
+                wallJumpRequest = true;
             }
         }
 
 
         // debug
+        // print(canStartClimbing);
 
 
         // prepare for next tick
@@ -747,12 +783,20 @@ public class PlayerController : MonoBehaviour
             jumpTicker = 0;
         }
         
+        // wall jump if a wall jump has been requested
+        if (wallJumpRequest)
+        {
+            wallJump();
+            wallJumpRequest = false;
+        }
+        
         // move via forces if movement has been requested
-        if (moveRequest) {
+        if (moveRequest) 
+        {
             moveForce(speedForce);
             moveRequest = false;
         }
-        
+
         // apply speed limit
         if (!mov.crouch && !mov.sprint)
         {
@@ -785,6 +829,8 @@ public class PlayerController : MonoBehaviour
             {
                 // the player is on the ground
                 isOnGround = true;
+                doubleJumpAvailable = true;
+                canStartClimbing = true;
                 
                 // apply a landing force if the player is trying to move and they are facing the same direction as when they left the ground
                 if ((mov.left ^ mov.right) && facing == facingStrict)
@@ -793,13 +839,11 @@ public class PlayerController : MonoBehaviour
                 }
             }
 
-            if (isCollidingClimbable(i.normal, collision) && !isClimbing)
+            if (isCollidingClimbable(i.normal, collision) && !isClimbing && canStartClimbing)
             {
                 // the player is climbing
                 isClimbing = true;
                 startClimb();
-
-                print("Climbing!");
             }
         }
     }
@@ -817,6 +861,8 @@ public class PlayerController : MonoBehaviour
                 if (isCollidingGround(i.normal))
                 {
                     isOnGround = true;
+                    doubleJumpAvailable = true;
+                    canStartClimbing = true;
                 }
             }
         }
@@ -825,10 +871,13 @@ public class PlayerController : MonoBehaviour
         {
             foreach(ContactPoint2D i in collision.contacts)
             {
-                if (isCollidingClimbable(i.normal, collision))
+                if (isCollidingClimbable(i.normal, collision) && canStartClimbing)
                 {
-                    isClimbing = true;
-                    startClimb();
+                    if ((i.normal.x == -1 && mov.right) || (i.normal.x == 1 && mov.left))
+                    {
+                        isClimbing = true;
+                        startClimb();
+                    }
                 }
             }
         }
