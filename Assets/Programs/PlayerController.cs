@@ -111,9 +111,11 @@ public class PlayerController : MonoBehaviour
     private Direction1D facingStrict = Direction1D.RIGHT; // a parallel to the facing variable which is only altered when the player is on the ground
     private Direction1D climbingFacing = Direction1D.NULL; // the direction the player is facing while climbing. NULL if the player is not climbing
     private Movement mov = new Movement(); // a class object containing the player's movement states
+    private Vector2 velocityVector; // the physics-based (i.e. from applied forces) velocity of the player
     private bool isOnGround = false;
     private bool isClimbing = false;
-    private Vector2 velocityVector; // the physics-based (i.e. from applied forces) velocity of the player
+    private bool doubleJumpAvailable = false;
+    private bool canStartClimbing = false;
     private float gravity;
 
     // Update() and FixedUpdate() interactions
@@ -405,7 +407,8 @@ public class PlayerController : MonoBehaviour
         updateJumpForce(pounceTicker);
 
         // jump
-        rb.AddForce(new Vector3(((int)facingStrict * currentJumpForce.x) + ((int)facing * addMovingJumpBoost()), currentJumpForce.y, 0), ForceMode2D.Impulse);
+        // rb.AddForce(new Vector3(((int)facingStrict * currentJumpForce.x) + ((int)facing * addMovingJumpBoost()), currentJumpForce.y, 0), ForceMode2D.Impulse);
+        rb.linearVelocity = new Vector3(((int)facingStrict * currentJumpForce.x) + ((int)facing * addMovingJumpBoost()) + rb.linearVelocity.x, currentJumpForce.y, 0);
         
         // reset the pounceTicker
         pounceTicker = 0;
@@ -452,11 +455,16 @@ public class PlayerController : MonoBehaviour
     {
         climbTicker = 0f;
         climbingFacing = facingStrict;
+
         transform.rotation = Quaternion.Euler(0, 0, 90 * (int)climbingFacing);
         transform.Translate((int)climbingFacing * Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / 2, 0, Space.World);
+
         rb.gravityScale = 0f;
+
         rb.linearVelocity = new Vector2(0, 0); // neutralize any ridigbody-based velocity
+
         isOnGround = false; // the player should not be able to jump or move as though they were on the ground
+        doubleJumpAvailable = false;
     }
 
     /// <summary>
@@ -472,16 +480,28 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Stop climbing.
+    /// Stop climbing by choice.
     /// </summary>
     void endClimb()
     {
         climbWaitTicker = 0f;
+
         transform.rotation = Quaternion.Euler(0, 0, 0);
         transform.Translate((int)climbingFacing * ((Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2) - 0.1f), Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2, 0, Space.World);
+
         climbingFacing = Direction1D.NULL;
+
         rb.gravityScale = gravity;
+
         isClimbing = false;
+    }
+
+    /// <summary>
+    /// Stop climbing due to time limit.
+    /// </summary>
+    void fall()
+    {
+        
     }
 
     /// <summary>
@@ -652,6 +672,10 @@ public class PlayerController : MonoBehaviour
         if (mov.jump && isOnGround && (jumpTicker >= jumpCooldown)) 
         {
             jumpRequest = true;
+        } else if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) && doubleJumpAvailable)
+        {
+            jumpRequest = true;
+            doubleJumpAvailable = false;
         }
 
         // left and right movement mechanics
@@ -741,6 +765,7 @@ public class PlayerController : MonoBehaviour
             {
                 // the player is on the ground
                 isOnGround = true;
+                doubleJumpAvailable = true;
                 
                 // apply a landing force if the player is trying to move and they are facing the same direction as when they left the ground
                 if ((mov.left ^ mov.right) && facing == facingStrict)
