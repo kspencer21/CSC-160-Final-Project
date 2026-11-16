@@ -30,6 +30,7 @@ public class PlayerController : MonoBehaviour
 
     private const float infinity = 1048576f; // an arbitrarily large number (equal to 2^20) representing an absence of an upper bound (used in serialized field bounds)
 
+    private string currentAnimation;
     // serialized variables (can be modified in the editor)
     [SerializeField] public Vector2 jumpForce = new Vector2(0f, 18f); // the amount of force to be applied to the player when they jump
     [SerializeField] public Vector2 pounceForce = new Vector2(18f, 10f); // the amount of force to be applied to the player after a fully charged pounce
@@ -160,9 +161,11 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.Mouse0)) 
         {
             mov.jump = true;
+            
         } else 
         {
             mov.jump = false;
+            
         }
 
         // listen for crouch-related keys down
@@ -188,6 +191,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
         {
             mov.left = true;
+            
         } else 
         {
             mov.left = false;
@@ -198,6 +202,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
         {
             mov.right = true;
+            
         } else 
         {
             mov.right = false;
@@ -209,19 +214,57 @@ public class PlayerController : MonoBehaviour
     /// Setting animation according to movement
     /// </summary>
 
-    void SetAnimation()
+    void SetAnimation(string newAnimation)
     {
-      if(isOnGround)
+        if (newAnimation==currentAnimation) return;
+        animator.Play(newAnimation);
+        currentAnimation=newAnimation;
+      
+    }
+
+    void UpdateAnimation()
+    {
+        if (isOnGround)
         {
-            if (!mov.left && !mov.right)
+
+
+            if (!mov.left && !mov.right&&mov.crouch&&mov.jump)
             {
-                animator.SetBool("isWalking", false);
+                SetAnimation("Pouncing");
+            } 
+            else if ((mov.left || mov.right) && mov.crouch)
+            {
+                SetAnimation("Crouch");
+            } 
+            else if(!mov.left && !mov.right && mov.crouch)
+            {
+                SetAnimation("Wiggle");
+            }
+            else if (!mov.left && !mov.right) 
+            {
+                SetAnimation("Idle");
             }
             else
             {
-                animator.SetBool("isWalking", true);
+                SetAnimation("Walk");
+            }
+
+        }
+        else
+        {
+            if (rb.linearVelocityY > 0.1f)
+            {
+                SetAnimation("Jumping");
+            }
+            else 
+            {
+                
+                SetAnimation("Falling");
+                        
             }
         }
+
+
     }
 
     void Flip()
@@ -433,6 +476,7 @@ public class PlayerController : MonoBehaviour
             {
                 // update pounceTicker based on how much time has passed
                 pounceTicker += Time.deltaTime;
+                
             }
         } else
         {
@@ -808,7 +852,7 @@ public class PlayerController : MonoBehaviour
         {
             // apply sprint speed limit, if sprint is implemented
         }
-        SetAnimation();
+        UpdateAnimation();
 
 
 
