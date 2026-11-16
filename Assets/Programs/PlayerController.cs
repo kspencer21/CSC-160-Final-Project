@@ -488,7 +488,7 @@ public class PlayerController : MonoBehaviour
         climbWaitTicker = 0f;
 
         transform.rotation = Quaternion.Euler(0, 0, 0);
-        transform.Translate((int)climbingFacing * ((Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2) - 0.01f), Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2, 0, Space.World);
+        transform.Translate((int)climbingFacing * ((Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2) - 0f), Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2, 0, Space.World);
 
         climbingFacing = Direction1D.NULL;
 
