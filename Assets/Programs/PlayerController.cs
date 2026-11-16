@@ -33,6 +33,7 @@ public class PlayerController : MonoBehaviour
     // serialized variables (can be modified in the editor)
     [SerializeField] public Vector2 jumpForce = new Vector2(0f, 18f); // the amount of force to be applied to the player when they jump
     [SerializeField] public Vector2 pounceForce = new Vector2(18f, 10f); // the amount of force to be applied to the player after a fully charged pounce
+    [SerializeField] public Vector2 wallJumpForce = new Vector2(3f, 18f); // the amount of force to be applied to the player on a wall jump
     [SerializeField] public float movingJumpBoost = 5f; // additional force to be applied only when the player is moving when they jump. Modified by the player's velocityVector
     [SerializeField] public float landBoost = 1.5f; // additional force to be applied when the player lands to account for the sudden friction
     [SerializeField] public Vector2 speedForce = new Vector2(20f, 0f); // speedForce determines how much the translational movement is affected by acceleration (via forces)
@@ -127,7 +128,6 @@ public class PlayerController : MonoBehaviour
     private float jumpTicker = jumpCooldown; // amount of time in seconds after the last jump
     private float limitNullifier = limitNullifierLength; // amount of time after a pounce. Used to nullify the limitSpeedX() method and enable longer pounces
     private float climbTicker = 0f;
-    private float climbWaitTicker = 0f;
 
     // relative values
     private Vector3 lastPos;
@@ -485,8 +485,6 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void endClimb()
     {
-        climbWaitTicker = 0f;
-
         transform.rotation = Quaternion.Euler(0, 0, 0);
         transform.Translate((int)climbingFacing * ((Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2) - 0f), Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2, 0, Space.World);
 
@@ -510,7 +508,8 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void wallJump()
     {
-        
+        rb.AddForce(new Vector3(-1 * (int)climbingFacing * wallJumpForce.x, wallJumpForce.y, 0), ForceMode2D.Impulse);
+        endClimb();
     }
 
     /// <summary>
@@ -663,7 +662,6 @@ public class PlayerController : MonoBehaviour
         jumpTicker += Time.deltaTime;
         limitNullifier += Time.deltaTime;
         climbTicker += Time.deltaTime;
-        climbWaitTicker += Time.deltaTime;
 
         // determine which way the player is facing
         updateFacing();
@@ -677,6 +675,15 @@ public class PlayerController : MonoBehaviour
             canStartClimbing = false; // they should not be able to restart climbing
         }
 
+        // left and right movement mechanics
+        setVelocity();
+        if (mov.left ^ mov.right)
+        {
+            moveRequest = true;
+            moveTranslate(currentVelocity);
+            climb(currentVelocity);
+        }
+
         // jump and pounce mechanics
         chargePounce(); 
         if (mov.jump && isOnGround && (jumpTicker >= jumpCooldown)) 
@@ -688,14 +695,7 @@ public class PlayerController : MonoBehaviour
             doubleJumpAvailable = false;
         }
 
-        // left and right movement mechanics
-        setVelocity();
-        if (mov.left ^ mov.right)
-        {
-            moveRequest = true;
-            moveTranslate(currentVelocity);
-            climb(currentVelocity);
-        }
+        // climb mechanics
         if (isClimbing)
         {
             if (mov.crouch || climbTicker > climbTime)
@@ -791,8 +791,6 @@ public class PlayerController : MonoBehaviour
                 // the player is climbing
                 isClimbing = true;
                 startClimb();
-
-                print("Climbing!");
             }
         }
     }
