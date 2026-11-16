@@ -465,6 +465,7 @@ public class PlayerController : MonoBehaviour
 
         isOnGround = false; // the player should not be able to jump or move as though they were on the ground
         doubleJumpAvailable = false;
+        canStartClimbing = false;
     }
 
     /// <summary>
@@ -487,7 +488,7 @@ public class PlayerController : MonoBehaviour
         climbWaitTicker = 0f;
 
         transform.rotation = Quaternion.Euler(0, 0, 0);
-        transform.Translate((int)climbingFacing * ((Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2) - 0.1f), Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2, 0, Space.World);
+        transform.Translate((int)climbingFacing * ((Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2) - 0.01f), Math.Abs(rend.bounds.size.x - rend.bounds.size.y) / -2, 0, Space.World);
 
         climbingFacing = Direction1D.NULL;
 
@@ -667,6 +668,15 @@ public class PlayerController : MonoBehaviour
         // determine which way the player is facing
         updateFacing();
 
+        // ensure that player states are what they should be
+        if (isClimbing)
+        {
+            // ANY TIME the player is climbing:
+            isOnGround = false; // they should not be able to jump
+            doubleJumpAvailable = false; // they should not be able to double jump
+            canStartClimbing = false; // they should not be able to restart climbing
+        }
+
         // jump and pounce mechanics
         chargePounce(); 
         if (mov.jump && isOnGround && (jumpTicker >= jumpCooldown)) 
@@ -686,7 +696,7 @@ public class PlayerController : MonoBehaviour
             moveTranslate(currentVelocity);
             climb(currentVelocity);
         }
-        if (isClimbing && climbWaitTicker > climbCooldown)
+        if (isClimbing)
         {
             if (mov.crouch || climbTicker > climbTime)
             {
@@ -699,6 +709,7 @@ public class PlayerController : MonoBehaviour
 
 
         // debug
+        // print(canStartClimbing);
 
 
         // prepare for next tick
@@ -766,6 +777,7 @@ public class PlayerController : MonoBehaviour
                 // the player is on the ground
                 isOnGround = true;
                 doubleJumpAvailable = true;
+                canStartClimbing = true;
                 
                 // apply a landing force if the player is trying to move and they are facing the same direction as when they left the ground
                 if ((mov.left ^ mov.right) && facing == facingStrict)
@@ -774,7 +786,7 @@ public class PlayerController : MonoBehaviour
                 }
             }
 
-            if (isCollidingClimbable(i.normal, collision) && !isClimbing)
+            if (isCollidingClimbable(i.normal, collision) && !isClimbing && canStartClimbing)
             {
                 // the player is climbing
                 isClimbing = true;
@@ -798,6 +810,8 @@ public class PlayerController : MonoBehaviour
                 if (isCollidingGround(i.normal))
                 {
                     isOnGround = true;
+                    doubleJumpAvailable = true;
+                    canStartClimbing = true;
                 }
             }
         }
@@ -806,10 +820,13 @@ public class PlayerController : MonoBehaviour
         {
             foreach(ContactPoint2D i in collision.contacts)
             {
-                if (isCollidingClimbable(i.normal, collision))
+                if (isCollidingClimbable(i.normal, collision) && canStartClimbing)
                 {
-                    isClimbing = true;
-                    startClimb();
+                    if ((i.normal.x == -1 && mov.right) || (i.normal.x == 1 && mov.left))
+                    {
+                        isClimbing = true;
+                        startClimb();
+                    }
                 }
             }
         }
