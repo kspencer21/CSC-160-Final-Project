@@ -23,7 +23,7 @@ public class PlayerController : MonoBehaviour
     // constants
     private const float maxHold = 0.6f; // number of seconds that the player must hold crouch before pouncing for currentJumpForce = pounceForce
     private const float minHold = 0.1f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to average of jumpForce and pounceForce
-    private const float climbTime = 3f; // amount of time in seconds that a player can climb
+    private const float climbTime = 1.5f; // amount of time in seconds that a player can climb
     private const float climbCooldown = 0.1f; // amount of time in seconds after stopping climbing that the player can climb again
     private const float jumpCooldown = 0.4f; // amount of time in seconds after jumping that a player can jump again
     private const float limitNullifierLength = 0.5f; // amount of time in seconds that limitSpeedX() is ignored after a pounce
@@ -122,6 +122,7 @@ public class PlayerController : MonoBehaviour
     // Update() and FixedUpdate() interactions
     private bool jumpRequest = false;
     private bool moveRequest = false;
+    private bool wallJumpRequest = false;
 
     // tickers and counters
     private float pounceTicker = 0f; // amount of time in seconds that a pounce has been charged
@@ -701,9 +702,9 @@ public class PlayerController : MonoBehaviour
             if (mov.crouch || climbTicker > climbTime)
             {
                 endClimb();
-            } else if (mov.jump)
+            } else if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
             {
-                wallJump();
+                wallJumpRequest = true;
             }
         }
 
@@ -740,12 +741,20 @@ public class PlayerController : MonoBehaviour
             jumpTicker = 0;
         }
         
+        // wall jump if a wall jump has been requested
+        if (wallJumpRequest)
+        {
+            wallJump();
+            wallJumpRequest = false;
+        }
+        
         // move via forces if movement has been requested
-        if (moveRequest) {
+        if (moveRequest) 
+        {
             moveForce(speedForce);
             moveRequest = false;
         }
-        
+
         // apply speed limit
         if (!mov.crouch && !mov.sprint)
         {

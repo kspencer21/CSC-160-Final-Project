@@ -307,13 +307,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   jumpForce: {x: 0, y: 18}
   pounceForce: {x: 18, y: 10}
-  movingJumpBoost: 5
-  landBoost: 1.5
-  speedForce: {x: 20, y: 0}
+  wallJumpForce: {x: 3, y: 18}
+  movingJumpBoost: 4
+  landBoost: 3
+  speedForce: {x: 18, y: 0}
   walkSpeed: {x: 2, y: 0}
   crawlSpeed: {x: 1, y: 0}
   climbSpeed: {x: 0, y: 5}
-  airForceFactor: 0.2
+  airForceFactor: 0.5
   airTranslationFactor: 0.8
   speedLimitWalk: 7
   speedLimitCrawl: 3
