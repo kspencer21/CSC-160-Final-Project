@@ -686,7 +686,7 @@ public class PlayerController : MonoBehaviour
         if (mov.jump && isOnGround && (jumpTicker >= jumpCooldown)) 
         {
             jumpRequest = true;
-        } else if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) && doubleJumpAvailable)
+        } else if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.Mouse0)) && doubleJumpAvailable)
         {
             jumpRequest = true;
             doubleJumpAvailable = false;
