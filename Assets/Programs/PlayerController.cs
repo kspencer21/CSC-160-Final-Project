@@ -31,6 +31,7 @@ public class PlayerController : MonoBehaviour
     private const float infinity = 1048576f; // an arbitrarily large number (equal to 2^20) representing an absence of an upper bound (used in serialized field bounds)
 
     private string currentAnimation;
+    private bool IsPouncing;
     // serialized variables (can be modified in the editor)
     [SerializeField] public Vector2 jumpForce = new Vector2(0f, 18f); // the amount of force to be applied to the player when they jump
     [SerializeField] public Vector2 pounceForce = new Vector2(18f, 10f); // the amount of force to be applied to the player after a fully charged pounce
@@ -222,31 +223,59 @@ public class PlayerController : MonoBehaviour
       
     }
 
+    private float PounceTimer;
+
     void UpdateAnimation()
     {
-        if (isOnGround)
+        if(PounceTimer>0f){
+            PounceTimer-=Time.deltaTime;
+        }
+
+        if(PounceTimer<=0f && isOnGround && rb.linearVelocityY <= 0.01f)
         {
+            IsPouncing=false;
+        }
 
-
-            if (!mov.left && !mov.right&&mov.crouch&&mov.jump)
+        if (isOnGround && mov.jump)
+        {
+            if (mov.crouch)
             {
-                SetAnimation("Pouncing");
-            } 
-            else if ((mov.left || mov.right) && mov.crouch)
-            {
-                SetAnimation("Crouch");
-            } 
-            else if(!mov.left && !mov.right && mov.crouch)
-            {
-                SetAnimation("Wiggle");
-            }
-            else if (!mov.left && !mov.right) 
-            {
-                SetAnimation("Idle");
+                IsPouncing=true;
             }
             else
             {
+                IsPouncing=false;
+            }
+        }
+
+        if (IsPouncing)
+        {
+            SetAnimation("Pouncing");
+        }
+        else if (isOnGround)
+        {
+
+            if (mov.crouch)
+            {
+                if(mov.left || mov.right)
+                {
+                    SetAnimation("Crouch");
+                }
+                else
+                {
+                    SetAnimation("Wiggle");
+                }
+            }
+            else if (mov.jump){
+                SetAnimation("Jumping");
+            }
+            else if (mov.left || mov.right) 
+            {
                 SetAnimation("Walk");
+            }
+            else 
+            {
+                SetAnimation("Idle");
             }
 
         }
@@ -256,11 +285,9 @@ public class PlayerController : MonoBehaviour
             {
                 SetAnimation("Jumping");
             }
-            else 
+            else
             {
-                
                 SetAnimation("Falling");
-                        
             }
         }
 
@@ -776,10 +803,12 @@ public class PlayerController : MonoBehaviour
         if (mov.jump && isOnGround && (jumpTicker >= jumpCooldown)) 
         {
             jumpRequest = true;
+            
         } else if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) && doubleJumpAvailable)
         {
             jumpRequest = true;
             doubleJumpAvailable = false;
+            
         }
 
         // climb mechanics
