@@ -54,7 +54,7 @@ public class MovingPlatform : MonoBehaviour
         lastVelocity = rb.linearVelocity;
 
         
-        print("MovingPlatform.cs: " + acceleration);
+        // print("MovingPlatform.cs: " + acceleration);
     }
 
 

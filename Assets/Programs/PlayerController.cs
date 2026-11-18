@@ -613,15 +613,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void alignPlatformVelocity(Transform platform)
-    {
-        Rigidbody2D rbp = platform.GetComponent<Rigidbody2D>();
-        MovingPlatform script = platform.GetComponent<MovingPlatform>();
-
-        rb.AddForce(script.acceleration, ForceMode2D.Impulse);
-        print("PlayerController.cs: " + script.acceleration);
-    }
-
 
 
 
@@ -635,7 +626,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void Start()
     {
-        // define component variables
+        // define component and object variables
         rb = GetComponent<Rigidbody2D>();
         collider = GetComponent<Collider2D>();
         rend = GetComponent<Renderer>();
@@ -754,12 +745,26 @@ public class PlayerController : MonoBehaviour
             wallJumpRequest = false;
         }
         
+        if (transform.parent != parent)
+        {
+            transform.Translate(transform.parent.GetComponent<Rigidbody2D>().linearVelocity * Time.deltaTime);
+            rb.linearVelocity *= new Vector2(0.9f, 0.9f);
+        }
         // move via forces if movement has been requested
         if (moveRequest) 
         {
             moveForce(speedForce);
             moveRequest = false;
         }
+        // else
+        // {
+        //     if (moveRequest)
+        //     {
+        //         moveForce(speedForce + transform.parent.GetComponent<Rigidbody2D>().linearVelocity);
+        //         print(transform.parent.GetComponent<Rigidbody2D>().linearVelocity);
+        //         moveRequest = false;
+        //     }
+        // }
 
         // apply speed limit
         if (!mov.crouch && !mov.sprint)
@@ -773,14 +778,10 @@ public class PlayerController : MonoBehaviour
             // apply sprint speed limit, if sprint is implemented
         }
         
-        if (transform.parent != parent)
-        {
-            alignPlatformVelocity(transform.parent);
-        }
 
 
         // debug
-        // print(velocityVector.x + (int)facingStrict * walkSpeed.x);
+        // print(rb.linearVelocity);
     }
 
     /// <summary>
@@ -815,7 +816,6 @@ public class PlayerController : MonoBehaviour
             if (collision.gameObject.CompareTag(Tag.movingPlatform))
             {
                 transform.SetParent(collision.transform);
-                print("Yay! New parent!");
             }
         }
     }
@@ -866,7 +866,6 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.CompareTag(Tag.movingPlatform))
         {
             transform.SetParent(parent);
-            print("Aw, old parent :(");
         }
     }
 
