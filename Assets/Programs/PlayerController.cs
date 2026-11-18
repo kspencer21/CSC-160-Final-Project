@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private Collider2D collider;
     private Renderer rend;
+    private Transform parent;
 
     // constants
     private const float maxHold = 0.6f; // number of seconds that the player must hold crouch before pouncing for currentJumpForce = pounceForce
@@ -603,13 +604,22 @@ public class PlayerController : MonoBehaviour
         if (
             (normal == new Vector2(1, 0) || normal == new Vector2(-1, 0)) && 
             collider.IsTouchingLayers(Mask.ground) && 
-            collision.gameObject.CompareTag("Climbable"))
+            collision.gameObject.CompareTag(Tag.climbable))
         {
             return true;
         } else
         {
             return false;
         }
+    }
+
+    void alignPlatformVelocity(Transform platform)
+    {
+        Rigidbody2D rbp = platform.GetComponent<Rigidbody2D>();
+        MovingPlatform script = platform.GetComponent<MovingPlatform>();
+
+        rb.AddForce(script.acceleration, ForceMode2D.Impulse);
+        print("PlayerController.cs: " + script.acceleration);
     }
 
 
@@ -629,6 +639,7 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         collider = GetComponent<Collider2D>();
         rend = GetComponent<Renderer>();
+        parent = transform.parent;
 
         // set initial relative values
         lastPos = transform.position;
@@ -706,10 +717,7 @@ public class PlayerController : MonoBehaviour
 
 
         // debug
-        // print(isOnGround);
-        // print(facing);
-        // print(climbingFacing);
-
+        // print(transform.parent);
 
         // prepare for next tick
         currentVelocity.x = 0;
@@ -764,6 +772,11 @@ public class PlayerController : MonoBehaviour
         {
             // apply sprint speed limit, if sprint is implemented
         }
+        
+        if (transform.parent != parent)
+        {
+            alignPlatformVelocity(transform.parent);
+        }
 
 
         // debug
@@ -797,6 +810,12 @@ public class PlayerController : MonoBehaviour
             {
                 // the player is climbing
                 startClimb();
+            }
+
+            if (collision.gameObject.CompareTag(Tag.movingPlatform))
+            {
+                transform.SetParent(collision.transform);
+                print("Yay! New parent!");
             }
         }
     }
@@ -844,7 +863,11 @@ public class PlayerController : MonoBehaviour
     /// <param name="collision"></param>
     void OnCollisionExit2D(Collision2D collision)
     {
-        isOnGround = false; // if the player is not in contact with any collisions (i.e. just stopped colliding with anything), they must be in the air
+        if (collision.gameObject.CompareTag(Tag.movingPlatform))
+        {
+            transform.SetParent(parent);
+            print("Aw, old parent :(");
+        }
     }
 
 
@@ -927,6 +950,7 @@ public class PlayerController : MonoBehaviour
     {
         public static string ground = "Ground";
         public static string climbable = "Climbable";
+        public static string movingPlatform = "Moving Platform";
     }
 
     /// <summary>
