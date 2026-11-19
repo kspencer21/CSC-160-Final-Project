@@ -110,7 +110,7 @@ public class PlayerController : MonoBehaviour
     private bool isClimbing = false;
     private bool doubleJumpAvailable = false;
     private bool canStartClimbing = false;
-    private float gravity;
+    private float gravity = 4.5f;
 
     // Update() and FixedUpdate() interactions
     private bool jumpRequest = false;
@@ -700,7 +700,7 @@ public class PlayerController : MonoBehaviour
             if (mov.crouch || climbTicker > climbTime)
             {
                 endClimb();
-            } else if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+            } else if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.Mouse0))
             {
                 wallJumpRequest = true;
             }
@@ -708,7 +708,7 @@ public class PlayerController : MonoBehaviour
 
 
         // debug
-        // print(transform.parent);
+        if (!isOnGround) { print(isOnGround); }
 
         // prepare for next tick
         currentVelocity.x = 0;
@@ -801,7 +801,7 @@ public class PlayerController : MonoBehaviour
                 canStartClimbing = true;
                 
                 // apply a landing force if the player is trying to move and they are facing the same direction as when they left the ground
-                if ((mov.left ^ mov.right) && facing == facingStrict)
+                if ((mov.left ^ mov.right) && facing == facingStrict && collision.gameObject.CompareTag(Tag.movingPlatform))
                 {
                     addLandForce();
                 }
@@ -830,7 +830,7 @@ public class PlayerController : MonoBehaviour
             foreach (ContactPoint2D i in collision.contacts) // check every object that the player is in contact with
             {
                 // the player is on the ground if any of the colliding objects is a ground object that is directly beneath the player
-                if (isCollidingGround(i.normal))
+                if (isCollidingGround(i.normal) && jumpTicker > jumpCooldown)
                 {
                     isOnGround = true;
                     doubleJumpAvailable = true;
@@ -863,6 +863,8 @@ public class PlayerController : MonoBehaviour
     /// <param name="collision"></param>
     void OnCollisionExit2D(Collision2D collision)
     {
+        // isOnGround = false;
+
         if (collision.gameObject.CompareTag(Tag.movingPlatform))
         {
             transform.SetParent(parent);
