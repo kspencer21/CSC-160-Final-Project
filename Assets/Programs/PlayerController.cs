@@ -19,7 +19,6 @@ public class PlayerController : MonoBehaviour
     private const float minHold = 0.1f; // number of seconds the player must hold a jump key for currentJumpForce to begin changing to average of jumpForce and pounceForce
     private const float climbTime = 1.5f; // amount of time in seconds that a player can climb
     private const float jumpCooldown = 0.4f; // amount of time in seconds after jumping that a player can jump again
-    private const float limitNullifierLength = 0.5f; // amount of time in seconds that limitSpeedX() is ignored after a pounce
 
     private const float infinity = 1048576f; // an arbitrarily large number (equal to 2^20) representing an absence of an upper bound (used in serialized field bounds)
 
@@ -110,6 +109,7 @@ public class PlayerController : MonoBehaviour
     private bool isClimbing = false;
     private bool doubleJumpAvailable = false;
     private bool canStartClimbing = false;
+    private bool speedLimitActive = true;
     private float gravity = 4.5f;
 
     // Update() and FixedUpdate() interactions
@@ -120,7 +120,6 @@ public class PlayerController : MonoBehaviour
     // tickers and counters
     private float pounceTicker = 0f; // amount of time in seconds that a pounce has been charged
     private float jumpTicker = jumpCooldown; // amount of time in seconds after the last jump
-    private float limitNullifier = limitNullifierLength; // amount of time after a pounce. Used to nullify the limitSpeedX() method and enable longer pounces
     private float climbTicker = 0f;
 
     // relative values
@@ -300,7 +299,7 @@ public class PlayerController : MonoBehaviour
     /// </remarks>
     void limitSpeedX(float velocity, float speed, float limit)
     {
-        if ((Math.Abs(velocity + ((int)facingStrict * speed)) > limit) && (limitNullifier > limitNullifierLength))
+        if ((Math.Abs(velocity + ((int)facingStrict * speed)) > limit) && speedLimitActive)
         {
             rb.linearVelocity = new Vector2((int)facingStrict * (limit - speed), rb.linearVelocity.y);
         }
@@ -339,7 +338,8 @@ public class PlayerController : MonoBehaviour
             currentJumpForce.y = pounceForce.y;
 
             // reset the speed limit nullifier ticker
-            limitNullifier = 0;
+            // limitNullifier = 0;
+            speedLimitActive = false;
         } else if (t <= minHold)
         {
             // set the jump force to jumpForce
@@ -356,7 +356,8 @@ public class PlayerController : MonoBehaviour
             currentJumpForce.y = pounceForce.y;
 
             // reset the speed limit nullifier ticker
-            limitNullifier = 0; 
+            // limitNullifier = 0; 
+            speedLimitActive = false;
         }
     }
 
@@ -402,7 +403,8 @@ public class PlayerController : MonoBehaviour
 
         // jump
         // rb.AddForce(new Vector3(((int)facingStrict * currentJumpForce.x) + ((int)facing * addMovingJumpBoost()), currentJumpForce.y, 0), ForceMode2D.Impulse);
-        rb.linearVelocity = new Vector3(((int)facingStrict * currentJumpForce.x) + ((int)facing * addMovingJumpBoost()) + rb.linearVelocity.x, currentJumpForce.y, 0);
+        rb.linearVelocity = new Vector3(rb.linearVelocity.x, currentJumpForce.y, 0);
+        rb.AddForce(new Vector3(((int)facingStrict * currentJumpForce.x) + ((int)facing * addMovingJumpBoost()) + rb.linearVelocity.x, 0, 0), ForceMode2D.Impulse);
         
         // reset the pounceTicker
         pounceTicker = 0;
@@ -659,7 +661,7 @@ public class PlayerController : MonoBehaviour
 
         // update tikers
         jumpTicker += Time.deltaTime;
-        limitNullifier += Time.deltaTime;
+        // limitNullifier += Time.deltaTime;
         climbTicker += Time.deltaTime;
 
         // determine which way the player is facing
@@ -687,9 +689,11 @@ public class PlayerController : MonoBehaviour
         chargePounce(); 
         if (mov.jump && isOnGround && (jumpTicker >= jumpCooldown)) 
         {
+            // normal jump
             jumpRequest = true;
         } else if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.Mouse0)) && doubleJumpAvailable)
         {
+            // double jump
             jumpRequest = true;
             doubleJumpAvailable = false;
         }
@@ -708,7 +712,7 @@ public class PlayerController : MonoBehaviour
 
 
         // debug
-        if (!isOnGround) { print(isOnGround); }
+        // print(isOnGround);
 
         // prepare for next tick
         currentVelocity.x = 0;
@@ -779,9 +783,9 @@ public class PlayerController : MonoBehaviour
         }
         
 
-
         // debug
-        // print(rb.linearVelocity);
+        // print(isOnGround);
+
     }
 
     /// <summary>
@@ -801,7 +805,7 @@ public class PlayerController : MonoBehaviour
                 canStartClimbing = true;
                 
                 // apply a landing force if the player is trying to move and they are facing the same direction as when they left the ground
-                if ((mov.left ^ mov.right) && facing == facingStrict && collision.gameObject.CompareTag(Tag.movingPlatform))
+                if ((mov.left ^ mov.right) && facing == facingStrict)
                 {
                     addLandForce();
                 }
@@ -818,6 +822,9 @@ public class PlayerController : MonoBehaviour
                 transform.SetParent(collision.transform);
             }
         }
+
+        // ensure that the speed limits are being applied
+        speedLimitActive = true;
     }
 
     /// <summary>
@@ -863,7 +870,18 @@ public class PlayerController : MonoBehaviour
     /// <param name="collision"></param>
     void OnCollisionExit2D(Collision2D collision)
     {
-        // isOnGround = false;
+        if (!collider.IsTouchingLayers(Mask.ground))
+        {
+            // foreach(ContactPoint2D i in collision.contacts)
+            // {
+            //     if (i.normal == new Vector2(0, 1))
+            //     {
+            //         isOnGround = false;
+            //     }
+            // }
+
+            isOnGround = false;
+        }
 
         if (collision.gameObject.CompareTag(Tag.movingPlatform))
         {
